@@ -1,6 +1,9 @@
 FROM php:7.4-fpm-alpine3.14
 
-LABEL Maintainer Kashyap Merai <kashyapk62@gmail.com>
+LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
+
+ENV EXT_REDIS_VERSION=5.3.4
+ENV EXT_LIBEVENT_VERSION=3.0.6
 
 # Add Repositories
 RUN rm -f /etc/apk/repositories &&\
@@ -15,7 +18,7 @@ RUN apk update && apk add --no-cache --virtual .build-deps  \
     libxml2-dev \
     bzip2-dev \
     postgresql-dev \ 
-    zip 
+    zip libevent-dev openssl-dev 
 
 
 # Add Production Dependencies
@@ -27,15 +30,20 @@ RUN apk add --update --no-cache \
     nano \
     icu-dev \
     freetype-dev \
-    mysql-client \ 
-    libzip-dev
+    nginx \
+    postgresql-client \ 
+    libzip-dev \
+    libzip libevent openssl git
 
 # Configure & Install Extension
-RUN docker-php-ext-configure \
+RUN mkdir -p /usr/src/php/ext/redis \
+    && mkdir -p /usr/src/php/ext/event \
+    && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
+    && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
+    && docker-php-ext-configure \
     opcache --enable-opcache &&\
     docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ && \
     docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql &&\
-    docker-php-ext-configure zip && \
     docker-php-ext-install \
     opcache \
     pdo_pgsql \
@@ -49,10 +57,13 @@ RUN docker-php-ext-configure \
     bz2 \
     pcntl \
     bcmath \
-    exif
+    exif \
+    zip \
+    && docker-php-ext-install redis \
+    && docker-php-ext-install --ini-name zz-event.ini event
 
 # Add Composer
-RUN curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="./vendor/bin:$PATH"
 
@@ -64,9 +75,9 @@ RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /de
 ADD master.ini /etc/supervisor.d/
 ADD default.conf /etc/nginx/conf.d/
 
-
 # Remove Build Dependencies
-RUN apk del -f .build-deps
+RUN apk del -f .build-deps && \
+    docker-php-source delete
 
 # Setup Working Dir
 WORKDIR /var/www

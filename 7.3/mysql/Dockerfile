@@ -1,6 +1,9 @@
 FROM php:7.3-fpm-alpine3.14
 
-LABEL Maintainer Kashyap Merai <kashyapk62@gmail.com>
+LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
+
+ENV EXT_REDIS_VERSION=5.3.4
+ENV EXT_LIBEVENT_VERSION=3.0.6
 
 # Add Repositories
 RUN rm -f /etc/apk/repositories &&\
@@ -13,7 +16,8 @@ RUN apk update && apk add --no-cache --virtual .build-deps  \
     libjpeg-turbo-dev \
     libpng-dev \
     libxml2-dev \
-    bzip2-dev
+    bzip2-dev \
+    zip libevent-dev openssl-dev
 
 # Add Production Dependencies
 RUN apk add --update --no-cache \
@@ -25,13 +29,17 @@ RUN apk add --update --no-cache \
     icu-dev \
     freetype-dev \
     mysql-client \
-    libzip-dev
+    libzip-dev \
+    libzip libevent openssl git
 
 # Configure & Install Extension
-RUN docker-php-ext-configure \
-    opcache --enable-opcache &&\
-    docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ &&\
-    docker-php-ext-install \
+RUN mkdir -p /usr/src/php/ext/redis \
+    && mkdir -p /usr/src/php/ext/event \
+    && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
+    && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
+    && docker-php-ext-configure opcache --enable-opcache \
+    && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ \
+    && docker-php-ext-install \
     opcache \
     mysqli \
     pdo \
@@ -41,22 +49,29 @@ RUN docker-php-ext-configure \
     intl \
     gd \
     xml \
-    zip \
     bz2 \
     pcntl \
-    bcmath
+    bcmath \
+    exif \
+    zip \
+    && docker-php-ext-install redis \
+    && docker-php-ext-install --ini-name zz-event.ini event
 
 # Add Composer
-RUN curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="./vendor/bin:$PATH"
+
+COPY opcache.ini $PHP_INI_DIR/conf.d/
+COPY php.ini $PHP_INI_DIR/conf.d/
 
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
 
 # Remove Build Dependencies
-RUN apk del -f .build-deps
+RUN apk del -f .build-deps && \
+    docker-php-source delete
 
 # Setup Working Dir
 WORKDIR /var/www

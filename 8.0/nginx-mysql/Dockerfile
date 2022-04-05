@@ -1,8 +1,8 @@
-FROM php:7.2-fpm-alpine3.14
+FROM php:8.0-fpm-alpine3.14
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
-ENV EXT_REDIS_VERSION=5.3.4
+ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.0.6
 
 # Add Repositories
@@ -28,6 +28,7 @@ RUN apk add --update --no-cache \
     nano \
     icu-dev \
     freetype-dev \
+    nginx \
     mysql-client \
     libzip-dev \
     libzip libevent openssl git
@@ -45,7 +46,6 @@ RUN mkdir -p /usr/src/php/ext/redis \
     pdo \
     pdo_mysql \
     sockets \
-    json \
     intl \
     gd \
     xml \
@@ -68,6 +68,7 @@ COPY php.ini $PHP_INI_DIR/conf.d/
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
+ADD default.conf /etc/nginx/conf.d/
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \

@@ -1,4 +1,4 @@
-FROM php:7.2-fpm-alpine3.14
+FROM php:8.0-fpm-alpine3.14
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
@@ -17,7 +17,9 @@ RUN apk update && apk add --no-cache --virtual .build-deps  \
     libpng-dev \
     libxml2-dev \
     bzip2-dev \
-    zip libevent-dev openssl-dev
+    postgresql-dev \ 
+    zip libevent-dev openssl-dev 
+
 
 # Add Production Dependencies
 RUN apk add --update --no-cache \
@@ -28,7 +30,8 @@ RUN apk add --update --no-cache \
     nano \
     icu-dev \
     freetype-dev \
-    mysql-client \
+    nginx \
+    postgresql-client \ 
     libzip-dev \
     libzip libevent openssl git
 
@@ -37,15 +40,16 @@ RUN mkdir -p /usr/src/php/ext/redis \
     && mkdir -p /usr/src/php/ext/event \
     && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
     && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
-    && docker-php-ext-configure opcache --enable-opcache \
-    && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ \
-    && docker-php-ext-install \
+    && docker-php-ext-configure \
+    opcache --enable-opcache &&\
+    docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ && \
+    docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql &&\
+    docker-php-ext-install \
     opcache \
-    mysqli \
+    pdo_pgsql \
+    pgsql \
     pdo \
-    pdo_mysql \
     sockets \
-    json \
     intl \
     gd \
     xml \
@@ -68,6 +72,7 @@ COPY php.ini $PHP_INI_DIR/conf.d/
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
+ADD default.conf /etc/nginx/conf.d/
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \
