@@ -4,7 +4,7 @@ on:
     branches: [master]
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: eightsystems/laravel-alpine
 jobs:
   mysql-nginx-7_1:
     runs-on: ubuntu-latest
