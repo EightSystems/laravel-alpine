@@ -2,12 +2,15 @@ name: Build PHP8.0
 on:
   push:
     branches: [master]
+  schedule:
+    - cron: '0 0 1,15 * *'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: eightsystems/laravel-alpine
 jobs:
   mysql-nginx-8_0:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -40,6 +43,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   pgsql-nginx-8_0:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -72,6 +76,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   mysql-8_0:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -104,6 +109,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   pgsql-8_0:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write

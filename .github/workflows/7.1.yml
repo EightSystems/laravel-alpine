@@ -2,11 +2,14 @@ name: Build PHP7.1
 on:
   push:
     branches: [master]
+  schedule:
+    - cron: "0 0 1,15 * *"
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: eightsystems/laravel-alpine
 jobs:
   mysql-nginx-7_1:
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,6 +43,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   pgsql-nginx-7_1:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -72,6 +76,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   mysql-7_1:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -104,6 +109,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   pgsql-7_1:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write

@@ -1,0 +1,38 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow checks out code, builds an image, performs a container image
+# vulnerability scan with Anchore's Grype tool, and integrates the results with GitHub Advanced Security
+# code scanning feature.  For more information on the Anchore scan action usage
+# and parameters, see https://github.com/anchore/scan-action. For more
+# information on Anchore's container image scanning tool Grype, see
+# https://github.com/anchore/grype
+name: Anchore Container Scan
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '0 2 1,15 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  Anchore-Build-Scan:
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Security Scan against 7.1-mysql-nginx
+        uses: anchore/scan-action@v3
+        with:
+          image: "ghcr.io/eightsystems/laravel-alpine:7.1-mysql-nginx"
+          acs-report-enable: true
+      - name: Upload Scan Report for 7.1-mysql-nginx
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
