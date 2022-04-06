@@ -1,16 +1,16 @@
-name: Build PHP7.1
+name: Build PHP8.1
 on:
   push:
     branches: [master]
   schedule:
-    - cron: "0 0 1,15 * *"
+    - cron: '0 0 1,15 * *'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: eightsystems/laravel-alpine
 jobs:
-  mysql-nginx-7_1:
-    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
+  mysql-nginx-8_1:
     runs-on: ubuntu-latest
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
       contents: read
       packages: write
@@ -36,12 +36,12 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./7.1/nginx-mysql/
+          context: ./8.1/nginx-mysql/
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:7.1-mysql-nginx
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:8.1-mysql-nginx
           labels: ${{ steps.meta.outputs.labels }}
-  pgsql-nginx-7_1:
+  pgsql-nginx-8_1:
     runs-on: ubuntu-latest
     if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
@@ -69,12 +69,12 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./7.1/nginx-pgsql/
+          context: ./8.1/nginx-pgsql/
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:7.1-pgsql-nginx
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:8.1-pgsql-nginx
           labels: ${{ steps.meta.outputs.labels }}
-  mysql-7_1:
+  mysql-8_1:
     runs-on: ubuntu-latest
     if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
@@ -102,12 +102,12 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./7.1/mysql/
+          context: ./8.1/mysql/
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:7.1-mysql
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:8.1-mysql
           labels: ${{ steps.meta.outputs.labels }}
-  pgsql-7_1:
+  pgsql-8_1:
     runs-on: ubuntu-latest
     if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     permissions:
@@ -135,8 +135,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./7.1/pgsql/
+          context: ./8.1/pgsql/
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:7.1-pgsql
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:8.1-pgsql
           labels: ${{ steps.meta.outputs.labels }}

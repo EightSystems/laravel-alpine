@@ -1,8 +1,8 @@
-FROM php:7.2-fpm-alpine3.12
+FROM php:8.1-fpm-alpine3.14
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
-ENV EXT_REDIS_VERSION=5.3.4
+ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.0.6
 
 # Add Repositories
@@ -28,7 +28,6 @@ RUN apk add --update --no-cache \
     nano \
     icu-dev \
     freetype-dev \
-    nginx \
     mysql-client \
     libzip-dev \
     libzip libevent openssl git
@@ -39,14 +38,13 @@ RUN mkdir -p /usr/src/php/ext/redis \
     && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
     && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
     && docker-php-ext-configure opcache --enable-opcache \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ \
     && docker-php-ext-install \
     opcache \
     mysqli \
     pdo \
     pdo_mysql \
     sockets \
-    json \
     intl \
     gd \
     xml \
@@ -69,8 +67,6 @@ COPY php.ini $PHP_INI_DIR/conf.d/
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
-ADD default.conf /etc/nginx/conf.d/
-RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \

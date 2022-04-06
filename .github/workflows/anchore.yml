@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run Security Scan against 7.1-mysql-nginx
+      - name: Run Security Scan against 7.4-mysql-nginx
         uses: anchore/scan-action@v3
         with:
-          image: "ghcr.io/eightsystems/laravel-alpine:7.1-mysql-nginx"
+          image: "ghcr.io/eightsystems/laravel-alpine:7.4-mysql-nginx"
           acs-report-enable: true
           fail-build: false
-      - name: Upload Scan Report for 7.1-mysql-nginx
+      - name: Upload Scan Report for 7.4-mysql-nginx
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
