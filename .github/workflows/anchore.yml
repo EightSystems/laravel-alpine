@@ -12,10 +12,8 @@
 name: Anchore Container Scan
 
 on:
-  push:
-    branches: [master]
   schedule:
-    - cron: "0 2 1,15 * *"
+    - cron: "0 4 1,15 * *"
 
 permissions:
   contents: read
