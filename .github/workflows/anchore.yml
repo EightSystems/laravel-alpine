@@ -15,7 +15,7 @@ on:
   push:
     branches: [master]
   schedule:
-    - cron: '0 2 1,15 * *'
+    - cron: "0 2 1,15 * *"
 
 permissions:
   contents: read
@@ -26,15 +26,19 @@ jobs:
       contents: read
       security-events: write
     runs-on: ubuntu-latest
+    strategy:
+    matrix:
+      php: ["7.4", "8.0", "8.1"]
+      variant: ["mysql", "nginx-mysql", "nginx-pgsql", "pgsql"]
     steps:
       - uses: actions/checkout@v2
-      - name: Run Security Scan against 7.4-mysql-nginx
+      - name: Run Security Scan against ${{ matrix.php }}-${{ matrix.variant }}
         uses: anchore/scan-action@v3
         with:
-          image: "ghcr.io/eightsystems/laravel-alpine:7.4-mysql-nginx"
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-${{ matrix.variant }}"
           acs-report-enable: true
           fail-build: false
-      - name: Upload Scan Report for 7.4-mysql-nginx
+      - name: Upload Scan Report for ${{ matrix.php }}-${{ matrix.variant }}
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
