@@ -15,10 +15,8 @@ jobs:
     strategy:
       max-parallel: 12
       matrix:
-        php: ["7.4"]
-        #, "8.0", "8.1"]
-        variant: ["mysql"]
-        #, "mysql-nginx", "pgsql-nginx", "pgsql"]
+        php: ["7.4", "8.0", "8.1"]
+        variant: ["mysql", "mysql-nginx", "pgsql-nginx", "pgsql"]
     permissions:
       contents: read
       packages: write
@@ -52,6 +50,6 @@ jobs:
         with:
           context: ./${{ matrix.php }}/${{ matrix.variant }}/
           push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64 #,linux/arm64
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -6,12 +6,31 @@ Laravel PHP framework running on PHP-FPM with alpine base Docker Image 🐳
 
 ![SIZE](http://i.imgur.com/oJ4jCPP.jpg)
 
+## Registry Options
+
+You can either pull it from ghcr (Github Container Registry) or DockerHub Registry
+
+- **GHCR Image:** ghcr.io/eightsystems/laravel-alpine
+- **DockerHub Image:** 8sistemas/laravel-alpine
+
+## Available versions/tags
+
+You can use any of the versions-tag bellow in the following form:
+
+`version-tag` as in: `7.4-mysql-nginx`
+
+| Version | Tags                                   |
+| ------- | -------------------------------------- |
+| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx |
+| 8.0     | mysql, mysql-nginx, pgsql, pgsql-nginx |
+| 8.1     | mysql, mysql-nginx, pgsql, pgsql-nginx |
+
 ## Pull it from Docker Registry
 
 To pull the docker image:
 
 ```bash
-docker pull ghcr.io/eightsystems/laravel-alpine:8.0-mysql
+docker pull 8sistemas/laravel-alpine:8.0-mysql
 ```
 
 ## Usage
@@ -19,7 +38,7 @@ docker pull ghcr.io/eightsystems/laravel-alpine:8.0-mysql
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www ghcr.io/eightsystems/laravel-alpine:8.0-mysql "composer install --prefer-dist"
+docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.0-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
@@ -31,9 +50,14 @@ docker run -v $(pwd):/var/www ghcr.io/eightsystems/laravel-alpine:8.0-mysql "com
 
 ## Other Details
 
-- Alpine base image
+- Alpine base image 3.14
+- Uses DockerHub php base image
+- Security Scan enabled on a biweekly basis (using Anchore)
+- Supervisor has `supervisorctl` support enabled on all tags
 
-## PHP Extension
+## PHP Extensions
+
+These extensions are the basis needed to run Laravel version 8.x and up
 
 - opcache
 - pdo
@@ -59,15 +83,15 @@ docker run -v $(pwd):/var/www ghcr.io/eightsystems/laravel-alpine:8.0-mysql "com
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```bash
-FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
+FROM 8sistemas/laravel-alpine:8.0-mysql
 RUN docker-php-ext-install memcached
 ```
 
 ## Adding custom CRON
 
 ```bash
-FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
-echo '0 * * ? * * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root
+FROM 8sistemas/laravel-alpine:8.0-mysql
+echo '* * * * * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root
 ```
 
 ## Adding custom Supervisor config
@@ -82,15 +106,16 @@ process_name=%(program_name)s
 command=php /var/www/artisan horizon
 autostart=true
 autorestart=true
-user=forge
+user=www-data
 redirect_stderr=true
-stdout_logfile=/var/www/storage/logs/horizon.log
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
 ```
 
 On your Docker image
 
 ```bash
-FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
+FROM 8sistemas/laravel-alpine:8.0-mysql
 ADD horizon.ini /etc/supervisor.d/
 ```
 
@@ -98,4 +123,4 @@ For more details on config http://supervisord.org/configuration.html
 
 ## Troubleshooting / Issues / Contributing
 
-Feel free to open an issue in this repository.
+Feel free to open an issue in this [GitHub repository](https://github.com/eightsystems/laravel-alpine).
