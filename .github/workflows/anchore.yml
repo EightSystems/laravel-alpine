@@ -27,6 +27,7 @@ jobs:
       security-events: write
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Run Security Scan against 7.1-mysql-nginx
         uses: anchore/scan-action@v3
         with:
