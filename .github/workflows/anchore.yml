@@ -27,9 +27,10 @@ jobs:
       security-events: write
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 4
       matrix:
         php: ["7.4", "8.0", "8.1"]
-        variant: ["mysql", "nginx-mysql", "nginx-pgsql", "pgsql"]
+        variant: ["mysql", "mysql-nginx", "pgsql-nginx", "pgsql"]
     steps:
       - uses: actions/checkout@v2
       - name: Run Security Scan against ${{ matrix.php }}-${{ matrix.variant }}
