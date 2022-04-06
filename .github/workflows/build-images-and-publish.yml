@@ -1,4 +1,4 @@
-name: Build PHP8.1
+name: Build PHP Images
 on:
   push:
     branches: [master]
