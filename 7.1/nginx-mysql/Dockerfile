@@ -56,7 +56,9 @@ RUN mkdir -p /usr/src/php/ext/redis \
     exif \
     zip \
     && docker-php-ext-install redis \
-    && docker-php-ext-install --ini-name zz-event.ini event
+    && docker-php-ext-install event \
+    && rm -f /usr/local/etc/php/conf.d/docker-php-ext-event.ini \
+    && docker-php-ext-enable --ini-name zz-event.ini event
 
 # Add Composer
 COPY --from=composer /usr/bin/composer /usr/bin/composer
@@ -70,6 +72,7 @@ COPY php.ini $PHP_INI_DIR/conf.d/
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
 ADD default.conf /etc/nginx/conf.d/
+RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \

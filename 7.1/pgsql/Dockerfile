@@ -59,7 +59,9 @@ RUN mkdir -p /usr/src/php/ext/redis \
     exif \
     zip \
     && docker-php-ext-install redis \
-    && docker-php-ext-install --ini-name zz-event.ini event
+    && docker-php-ext-install event \
+    && rm -f /usr/local/etc/php/conf.d/docker-php-ext-event.ini \
+    && docker-php-ext-enable --ini-name zz-event.ini event
 
 # Add Composer
 COPY --from=composer /usr/bin/composer /usr/bin/composer

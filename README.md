@@ -4,11 +4,6 @@
 
 Laravel PHP framework running on PHP-FPM with alpine base Docker Image 🐳
 
-[![Docker Automated build](https://img.shields.io/docker/automated/8sistemas/laravel-alpine.svg?style=flat-square)](https://hub.docker.com/r/8sistemas/laravel-alpine)
-[![Docker Stars](https://img.shields.io/docker/stars/8sistemas/laravel-alpine.svg?style=flat-square)](https://hub.docker.com/r/8sistemas/laravel-alpine)
-[![Docker Pulls](https://img.shields.io/docker/pulls/8sistemas/laravel-alpine.svg?style=flat-square)](https://hub.docker.com/r/8sistemas/laravel-alpine)
-[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square)](https://github.com/8sistemas/laravel-alpine/)
-
 ![SIZE](http://i.imgur.com/oJ4jCPP.jpg)
 
 ## Pull it from Docker Registry
@@ -16,7 +11,7 @@ Laravel PHP framework running on PHP-FPM with alpine base Docker Image 🐳
 To pull the docker image:
 
 ```bash
-docker pull 8sistemas/laravel-alpine:latest
+docker pull ghcr.io/eightsystems/laravel-alpine:8.0-mysql
 ```
 
 ## Usage
@@ -24,14 +19,15 @@ docker pull 8sistemas/laravel-alpine:latest
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:latest "composer install --prefer-dist"
+docker run -v $(pwd):/var/www ghcr.io/eightsystems/laravel-alpine:8.0-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
 
-- [Composer](https://getcomposer.org/) ( v2 - updated )
+- [Composer](https://getcomposer.org/) ( v2 - from Docker official image )
 - CRON ( pre-installed and configured to work with Laravel Scheduler )
 - [Supervisor](http://supervisord.org)
+- ARM64 version
 
 ## Other Details
 
@@ -40,36 +36,37 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:latest "composer install 
 ## PHP Extension
 
 - opcache
-- mysqli
-- pgsql
 - pdo
-- pdo_mysql
-- pdo_pgsql
+- mysqli (mysql images)
+- pdo_mysql (mysql images)
+- pgsql (pgsql images)
+- pdo_pgsql (pgsql images)
 - sockets
-- json
+- json (except for PHP 8.0 as it's builtin)
 - intl
 - gd
 - xml
-- zip
 - bz2
 - pcntl
 - bcmath
-- event
+- exif
+- zip
 - redis
+- event
 
 ## Adding other PHP Extension
 
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```bash
-FROM 8sistemas/laravel-alpine:latest
+FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
 RUN docker-php-ext-install memcached
 ```
 
 ## Adding custom CRON
 
 ```bash
-FROM 8sistemas/laravel-alpine:latest
+FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
 echo '0 * * ? * * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root
 ```
 
@@ -82,18 +79,18 @@ E.g: For Laravel Horizon make file `horizon.ini`
 ```ini
 [program:horizon]
 process_name=%(program_name)s
-command=php /home/forge/app.com/artisan horizon
+command=php /var/www/artisan horizon
 autostart=true
 autorestart=true
 user=forge
 redirect_stderr=true
-stdout_logfile=/home/forge/app.com/horizon.log
+stdout_logfile=/var/www/storage/logs/horizon.log
 ```
 
 On your Docker image
 
 ```bash
-FROM 8sistemas/laravel-alpine:latest
+FROM ghcr.io/eightsystems/laravel-alpine:8.0-mysql
 ADD horizon.ini /etc/supervisor.d/
 ```
 
