@@ -69,7 +69,7 @@ COPY php.ini $PHP_INI_DIR/conf.d/
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root && mkdir /etc/supervisor.d
 ADD master.ini /etc/supervisor.d/
-ADD default.conf /etc/nginx/conf.d/
+ADD default.conf /etc/nginx/http.d/
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \

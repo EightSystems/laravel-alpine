@@ -1,4 +1,4 @@
-FROM php:7.2-fpm-alpine3.14
+FROM php:7.2-fpm-alpine3.12
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
