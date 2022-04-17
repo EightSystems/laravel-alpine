@@ -4,7 +4,7 @@
 
 Laravel PHP framework running on PHP-FPM with alpine base Docker Image 🐳
 
-![SIZE](http://i.imgur.com/oJ4jCPP.jpg)
+![SIZE](https://github.com/EightSystems/laravel-alpine/blob/master/image-list-screenshot.png?raw=true)
 
 ## Registry Options
 
