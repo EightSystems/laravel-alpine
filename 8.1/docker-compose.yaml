@@ -1,0 +1,46 @@
+version: "3"
+services:
+  mysql:
+    image: 8sistemas/laravel-alpine:8.1-mysql
+    user: "www-data:www-data"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+  mysql-nginx:
+    image: 8sistemas/laravel-alpine:8.1-mysql-nginx
+    user: "www-data:www-data"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    ports:
+      - 9090:80
+  pgsql:
+    image: 8sistemas/laravel-alpine:8.1-pgsql
+    user: "www-data:www-data"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+  pgsql-nginx:
+    user: "www-data:www-data"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    image: 8sistemas/laravel-alpine:8.1-pgsql-nginx
+    ports:
+      - 9091:80

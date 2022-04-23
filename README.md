@@ -30,7 +30,7 @@ You can use any of the versions-tag bellow in the following form:
 To pull the docker image:
 
 ```bash
-docker pull 8sistemas/laravel-alpine:8.0-mysql
+docker pull 8sistemas/laravel-alpine:8.1-mysql
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ docker pull 8sistemas/laravel-alpine:8.0-mysql
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.0-mysql "composer install --prefer-dist"
+docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
@@ -47,6 +47,11 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.0-mysql "composer insta
 - CRON ( pre-installed and configured to work with Laravel Scheduler )
 - [Supervisor](http://supervisord.org)
 - ARM64 version
+- ARMV7 version
+- Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
+- Readonly filesystem support (with some paths needed being tmpfs)
+    - [Sample Docker-compose file](8.1/docker-compose.yaml)
+    - [Sample Kubernetes POD Yaml](8.1/kube-pod.yaml)
 
 ## Other Details
 
@@ -57,9 +62,8 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.0-mysql "composer insta
 
 ## PHP Extensions
 
-These extensions are the basis needed to run Laravel version 8.x and up
+These extensions are the basics (and some small additions) needed to run Laravel version 8.x and up
 
-- opcache
 - pdo
 - mysqli (mysql images)
 - pdo_mysql (mysql images)
@@ -68,7 +72,6 @@ These extensions are the basis needed to run Laravel version 8.x and up
 - sockets
 - json (except for PHP 8.0 as it's builtin)
 - intl
-- gd
 - xml
 - bz2
 - pcntl
@@ -78,20 +81,29 @@ These extensions are the basis needed to run Laravel version 8.x and up
 - redis
 - event
 
+### Small additions
+
+- opcache
+- gettext
+- mbstring
+- gd (with jpeg, png, freetype, gif, and webp support)
+
 ## Adding other PHP Extension
 
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```bash
-FROM 8sistemas/laravel-alpine:8.0-mysql
+FROM 8sistemas/laravel-alpine:8.1-mysql
+USER root
 RUN docker-php-ext-install memcached
+USER www-data
 ```
 
 ## Adding custom CRON
 
 ```bash
-FROM 8sistemas/laravel-alpine:8.0-mysql
-echo '* * * * * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/root
+FROM 8sistemas/laravel-alpine:8.1-mysql
+RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
 
 ## Adding custom Supervisor config
@@ -115,11 +127,13 @@ stdout_logfile_maxbytes=0
 On your Docker image
 
 ```bash
-FROM 8sistemas/laravel-alpine:8.0-mysql
+FROM 8sistemas/laravel-alpine:8.1-mysql
+USER root
 ADD horizon.ini /etc/supervisor.d/
+USER www-data
 ```
 
-For more details on config http://supervisord.org/configuration.html
+For more details on supervisor config http://supervisord.org/configuration.html
 
 ## Troubleshooting / Issues / Contributing
 

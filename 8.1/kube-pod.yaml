@@ -1,0 +1,35 @@
+# pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webserver
+  labels:
+    name: webserver
+spec:
+  containers:
+    - name: webserver
+      image: 8sistemas/laravel-alpine:8.1-mysql-nginx
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        runAsUser: 82 #www-data
+        runAsGroup: 82 #www-data
+        fsGroup: 82 #www-data
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - mountPath: /tmp
+          name: tmpfs-1
+        - mountPath: /run/nginx
+          name: tmpfs-2
+        - mountPath: /var/lib/nginx/tmp
+          name: tmpfs-3
+  volumes:
+    - name: tmpfs-1
+      emptyDir: {}
+    - name: tmpfs-2
+      emptyDir: {}
+    - name: tmpfs-3
+      emptyDir: {}
