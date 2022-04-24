@@ -2,7 +2,7 @@ version: "3"
 services:
   mysql:
     image: 8sistemas/laravel-alpine:7.4-mysql
-    user: "www-data:www-data"
+    user: "82:82"
     read_only: true
     tmpfs:
       - /tmp
@@ -12,7 +12,7 @@ services:
       - ALL
   mysql-nginx:
     image: 8sistemas/laravel-alpine:7.4-mysql-nginx
-    user: "www-data:www-data"
+    user: "82:82"
     read_only: true
     tmpfs:
       - /tmp
@@ -21,10 +21,10 @@ services:
     cap_drop:
       - ALL
     ports:
-      - 9090:80
+      - 9090:8080
   pgsql:
     image: 8sistemas/laravel-alpine:7.4-pgsql
-    user: "www-data:www-data"
+    user: "82:82"
     read_only: true
     tmpfs:
       - /tmp
@@ -33,7 +33,7 @@ services:
     cap_drop:
       - ALL
   pgsql-nginx:
-    user: "www-data:www-data"
+    user: "82:82"
     read_only: true
     tmpfs:
       - /tmp
@@ -43,4 +43,4 @@ services:
       - ALL
     image: 8sistemas/laravel-alpine:7.4-pgsql-nginx
     ports:
-      - 9091:80
+      - 9091:8080

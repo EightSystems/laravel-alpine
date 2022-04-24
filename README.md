@@ -50,8 +50,8 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer insta
 - ARMV7 version
 - Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
 - Readonly filesystem support (with some paths needed being tmpfs)
-    - [Sample Docker-compose file](8.1/docker-compose.yaml)
-    - [Sample Kubernetes POD Yaml](8.1/kube-pod.yaml)
+    - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/docker-compose.yaml)
+    - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/kube-pod.yaml)
 
 ## Other Details
 

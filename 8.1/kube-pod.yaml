@@ -6,19 +6,21 @@ metadata:
   labels:
     name: webserver
 spec:
+  securityContext:
+    runAsUser: 82 #www-data
+    runAsGroup: 82 #www-data
+    fsGroup: 82 #www-data
   containers:
     - name: webserver
       image: 8sistemas/laravel-alpine:8.1-mysql-nginx
       securityContext:
+        allowPrivilegeEscalation: false
         capabilities:
           drop:
             - ALL
         readOnlyRootFilesystem: true
-        runAsUser: 82 #www-data
-        runAsGroup: 82 #www-data
-        fsGroup: 82 #www-data
       ports:
-        - containerPort: 80
+        - containerPort: 8080
       volumeMounts:
         - mountPath: /tmp
           name: tmpfs-1
@@ -30,6 +32,7 @@ spec:
     - name: tmpfs-1
       emptyDir: {}
     - name: tmpfs-2
-      emptyDir: {}
+      emptyDir:
+        medium: "Memory"
     - name: tmpfs-3
       emptyDir: {}
