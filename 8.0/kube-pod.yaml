@@ -1,3 +1,14 @@
+# secret.yml
+apiVersion: v1
+data:
+  username: YWRtaW4=
+  password: MWYyZDFlMmU2N2Rm
+kind: Secret
+metadata:
+  name: webserver-secret
+type: Opaque
+---
+
 # pod.yml
 apiVersion: v1
 kind: Pod
@@ -13,6 +24,20 @@ spec:
   containers:
     - name: webserver
       image: 8sistemas/laravel-alpine:8.0-mysql-nginx
+      imagePullPolicy: Always
+      env:
+      - name: ENV_VAR_FROM_POD
+        value: "test from pod"
+      - name: ENV_USERNAME_FROM_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: webserver-secret
+            key: username
+      - name: ENV_PASSWORD_FROM_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: webserver-secret
+            key: password
       securityContext:
         allowPrivilegeEscalation: false
         capabilities:

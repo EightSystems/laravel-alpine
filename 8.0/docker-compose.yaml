@@ -14,6 +14,8 @@ services:
     image: 8sistemas/laravel-alpine:8.0-mysql-nginx
     user: "82:82"
     read_only: true
+    environment:
+      - ENV_VAR_FROM_DOCKER_COMPOSE=test
     tmpfs:
       - /tmp
       - /run/nginx
@@ -35,6 +37,8 @@ services:
   pgsql-nginx:
     user: "82:82"
     read_only: true
+    environment:
+      - ENV_VAR_FROM_DOCKER_COMPOSE=test
     tmpfs:
       - /tmp
       - /run/nginx
