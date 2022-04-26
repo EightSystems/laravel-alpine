@@ -43,15 +43,29 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer insta
 
 ## What's Included
 
-- [Composer](https://getcomposer.org/) ( v2 - from Docker official image )
-- CRON ( pre-installed and configured to work with Laravel Scheduler )
+- [Composer](https://getcomposer.org/) (v2 - from Docker official image)
+- CRON (pre-installed and configured to work with Laravel Scheduler)
 - [Supervisor](http://supervisord.org)
 - ARM64 version
-- ARMV7 version
+- Nginx "modular" config. See [NGINX-Files.md](https://github.com/EightSystems/laravel-alpine/docs/NGINX-Files.md)
+- Prometheus exporter for both PHP and NGINX (if you enable it setting the env variable `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`). See [Prometheus-Scrapper.md](https://github.com/EightSystems/laravel-alpine/docs/Prometheus-Scrapper.md)
+  - We use a merge metrics exporter so you get both nginx and php-fpm metrics in a single query
+    - nginx-prometheus-exporter:0.10
+    - php-fpm_exporter:2.0.4
+    - exporter-merger:0.4.0
+- Secrets Manager Environment Expander
+  - See [Secrets-Environment-Expander.md](https://github.com/EightSystems/laravel-alpine/docs/Secrets-Environment-Expander.md)
+- PHP Production ini values
+  - See [php.ini](https://github.com/EightSystems/laravel-alpine/base/core/php.ini)
+- Opcache Support
+  - See [opcache.ini](https://github.com/EightSystems/laravel-alpine/base/core/opcache.ini)
 - Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
+- Small memory footprint
+  - 8.1-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
+    - This allows you to run your container with as little of 128MB of RAM still giving some room for your application.
 - Readonly filesystem support (with some paths needed being tmpfs)
-    - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/docker-compose.yaml)
-    - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/kube-pod.yaml)
+  - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/docker-compose.yaml)
+  - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/kube-pod.yaml)
 
 ## Other Details
 
@@ -92,7 +106,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
-```bash
+```Dockerfile
 FROM 8sistemas/laravel-alpine:8.1-mysql
 USER root
 RUN docker-php-ext-install memcached
@@ -101,7 +115,7 @@ USER www-data
 
 ## Adding custom CRON
 
-```bash
+```Dockerfile
 FROM 8sistemas/laravel-alpine:8.1-mysql
 RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
@@ -120,13 +134,13 @@ autostart=true
 autorestart=true
 user=www-data
 redirect_stderr=true
-stdout_logfile=/dev/fd/1
+stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 ```
 
 On your Docker image
 
-```bash
+```Dockerfile
 FROM 8sistemas/laravel-alpine:8.1-mysql
 USER root
 ADD horizon.ini /etc/supervisor.d/

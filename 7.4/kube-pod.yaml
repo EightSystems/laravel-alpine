@@ -17,6 +17,9 @@ metadata:
   labels:
     name: webserver
 spec:
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '9090'
   securityContext:
     runAsUser: 82 #www-data
     runAsGroup: 82 #www-data
@@ -25,7 +28,17 @@ spec:
     - name: webserver
       image: 8sistemas/laravel-alpine:7.4-mysql-nginx
       imagePullPolicy: Always
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: http
       env:
+      - name: ENABLE_PROMETHEUS_EXPORTER_RUNNER
+        value: "1"
       - name: ENV_VAR_FROM_POD
         value: "test from pod"
       - name: ENV_USERNAME_FROM_SECRET

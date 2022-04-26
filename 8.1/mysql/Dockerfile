@@ -5,6 +5,8 @@ LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vi
 ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.0.6
 
+ARG TARGETARCH
+
 # Add Repositories
 RUN rm -f /etc/apk/repositories &&\
     echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories && \
@@ -33,7 +35,7 @@ RUN apk add --update --no-cache \
     freetype-dev \
     mysql-client \
     libzip-dev \
-    libzip libevent openssl git libwebp libintl oniguruma tini
+    libzip libevent openssl git libwebp libintl oniguruma tini bash
 
 # Configure & Install Extension
 RUN mkdir -p /usr/src/php/ext/redis \
@@ -61,20 +63,30 @@ RUN mkdir -p /usr/src/php/ext/redis \
     && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) redis \
     && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event
 
+# Add Prometheus Exporter
+ADD https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH /usr/bin/php-fpm-exporter
+RUN chmod +x /usr/bin/php-fpm-exporter
+
 # Add Composer
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="./vendor/bin:$PATH"
 
-COPY opcache.ini $PHP_INI_DIR/conf.d/
-COPY php.ini $PHP_INI_DIR/conf.d/
+COPY base/core/run-with-secrets.php /usr/local/bin/run-with-secrets.php
+COPY base/core/start-if-env-variable-is-set.sh /usr/local/bin/start-if-env-variable-is-set.sh
+RUN chmod +x /usr/local/bin/run-with-secrets.php /usr/local/bin/start-if-env-variable-is-set.sh
+
+COPY base/core/opcache.ini $PHP_INI_DIR/conf.d/
+COPY base/core/php.ini $PHP_INI_DIR/conf.d/
 
 # Use www-data as a user
 RUN chown -R www-data:www-data /var/www
 
 # Setup Crond and Supervisor by default
 RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/www-data && mkdir /etc/supervisor.d && rm -f /etc/crontabs/root
-ADD master.ini /etc/supervisord.conf
+ADD base/core/master.ini /etc/supervisord.conf
+
+RUN echo -e "[www]\npm.status_path = /orchestration/php-fpm-status\nping.path = /healthz\nping.response = alive" > /usr/local/etc/php-fpm.d/zz-status.conf
 
 # Remove Build Dependencies
 RUN apk del -f .build-deps && \
@@ -84,6 +96,8 @@ RUN apk del -f .build-deps && \
 WORKDIR /var/www
 
 USER www-data
+EXPOSE 9000
+EXPOSE 9090
 
 ENTRYPOINT ["tini", "--"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
