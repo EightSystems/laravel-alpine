@@ -47,18 +47,18 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer insta
 - CRON (pre-installed and configured to work with Laravel Scheduler)
 - [Supervisor](http://supervisord.org)
 - ARM64 version
-- Nginx "modular" config. See [NGINX-Files.md](https://github.com/EightSystems/laravel-alpine/docs/NGINX-Files.md)
-- Prometheus exporter for both PHP and NGINX (if you enable it setting the env variable `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`). See [Prometheus-Scrapper.md](https://github.com/EightSystems/laravel-alpine/docs/Prometheus-Scrapper.md)
+- Nginx "modular" config. See [NGINX-Files.md](https://github.com/EightSystems/laravel-alpine/master/docs/NGINX-Files.md)
+- Prometheus exporter for both PHP and NGINX (if you enable it setting the env variable `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`). See [Prometheus-Scrapper.md](https://github.com/EightSystems/laravel-alpine/master/docs/Prometheus-Scrapper.md)
   - We use a merge metrics exporter so you get both nginx and php-fpm metrics in a single query
     - nginx-prometheus-exporter:0.10
     - php-fpm_exporter:2.0.4
     - exporter-merger:0.4.0
 - Secrets Manager Environment Expander
-  - See [Secrets-Environment-Expander.md](https://github.com/EightSystems/laravel-alpine/docs/Secrets-Environment-Expander.md)
+  - See [Secrets-Environment-Expander.md](https://github.com/EightSystems/laravel-alpine/master/docs/Secrets-Environment-Expander.md)
 - PHP Production ini values
-  - See [php.ini](https://github.com/EightSystems/laravel-alpine/base/core/php.ini)
+  - See [php.ini](https://github.com/EightSystems/laravel-alpine/master/base/core/php.ini)
 - Opcache Support
-  - See [opcache.ini](https://github.com/EightSystems/laravel-alpine/base/core/opcache.ini)
+  - See [opcache.ini](https://github.com/EightSystems/laravel-alpine/master/base/core/opcache.ini)
 - Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
 - Small memory footprint
   - 8.1-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
