@@ -7,90 +7,98 @@ ENV EXT_LIBEVENT_VERSION=3.0.6
 
 ARG TARGETARCH
 
-# Add Repositories
-RUN rm -f /etc/apk/repositories &&\
-    echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories
-
-# Add Build Dependencies
-RUN apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
-    zlib-dev \
-    libjpeg-turbo-dev \
-    libpng-dev \
-    libwebp-dev \
-    gettext-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    bzip2-dev \
-    zip libevent-dev openssl-dev
-
-# Add Production Dependencies
-RUN apk add --update --no-cache \
-    jpegoptim \
-    pngquant \
-    optipng \
-    supervisor \
-    nano \
-    icu-dev \
-    freetype-dev \
-    mysql-client \
-    libzip-dev \
-    libzip libevent openssl git libwebp libintl oniguruma tini bash
-
-# Configure & Install Extension
-RUN mkdir -p /usr/src/php/ext/redis \
-    && mkdir -p /usr/src/php/ext/event \
-    && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
-    && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
-    && docker-php-ext-configure opcache --enable-opcache \
-    && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ --with-webp=/usr/include \
-    && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
-    opcache \
-    mysqli \
-    pdo \
-    pdo_mysql \
-    sockets \
-    intl \
-    gd \
-    xml \
-    bz2 \
-    pcntl \
-    bcmath \
-    exif \
-    zip \
-    gettext \
-    mbstring \
-    && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) redis \
-    && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event
-
-# Add Prometheus Exporter
-ADD https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH /usr/bin/php-fpm-exporter
-RUN chmod +x /usr/bin/php-fpm-exporter
-
-# Add Composer
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+# Composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="./vendor/bin:$PATH"
 
-COPY base/core/run-with-secrets.php /usr/local/bin/run-with-secrets.php
-COPY base/core/start-if-env-variable-is-set.sh /usr/local/bin/start-if-env-variable-is-set.sh
-RUN chmod +x /usr/local/bin/run-with-secrets.php /usr/local/bin/start-if-env-variable-is-set.sh
+# Add Docker base folders
+COPY base /tmp/base
 
-COPY base/core/opcache.ini $PHP_INI_DIR/conf.d/
-COPY base/core/php.ini $PHP_INI_DIR/conf.d/
-
-# Use www-data as a user
-RUN chown -R www-data:www-data /var/www
-
-# Setup Crond and Supervisor by default
-RUN echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/www-data && mkdir /etc/supervisor.d && rm -f /etc/crontabs/root
-ADD base/core/master.ini /etc/supervisord.conf
-
-RUN echo -e "[www]\npm.status_path = /orchestration/php-fpm-status\nping.path = /healthz\nping.response = alive" > /usr/local/etc/php-fpm.d/zz-status.conf
-
-# Remove Build Dependencies
-RUN apk del -f .build-deps && \
-    docker-php-source delete
+# Add Helpers
+RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/core/run-with-secrets.php base/core/start-if-env-variable-is-set.sh /usr/local/bin/) && \
+    # Add Repositories
+    rm -f /etc/apk/repositories &&\
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories) && \
+    # Add Build Dependencies
+    apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
+        zlib-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+        gettext-dev \
+        oniguruma-dev \
+        libxml2-dev \
+        bzip2-dev \
+        mariadb-connector-c-dev \
+        zip libevent-dev openssl-dev && \
+    # Add Production Dependencies
+    apk add --update --no-cache \
+        jpegoptim \
+        pngquant \
+        optipng \
+        nano \
+        icu-dev \
+        freetype-dev \
+        mariadb-connector-c \
+        libzip-dev \
+        libzip libevent openssl git libwebp libintl oniguruma tini bash && \
+    # Add Prometheus Exporter
+    (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
+    # Add Composer
+    (curl -fsSL https://github.com/composer/composer/releases/download/2.3.5/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
+    # Add supervisor static
+    if [ "$TARGETARCH" == "amd64" ]; then \
+        curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_64-bit.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
+    else \
+        curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_ARM64.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
+    fi && \
+    chmod +x /usr/bin/supervisord && \
+    # Configure & Install Extension
+    mkdir -p /usr/src/php/ext/redis \
+        && mkdir -p /usr/src/php/ext/event \
+        && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
+        && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
+        && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ --with-webp=/usr/include \
+        && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
+            mysqli \
+            pdo \
+            pdo_mysql \
+            sockets \
+            intl \
+            gd \
+            xml \
+            bz2 \
+            pcntl \
+            bcmath \
+            exif \
+            zip \
+            gettext \
+            mbstring \
+            redis \
+        && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
+    # Add Prometheus Exporter
+    chmod +x /usr/bin/php-fpm-exporter && \
+    # Executable to helpers
+    chmod +x /usr/local/bin/run-with-secrets.php /usr/local/bin/start-if-env-variable-is-set.sh /usr/local/bin/docker-php-clean /usr/local/bin/supervisorctl && \
+    # Use www-data as a user
+    chown -R www-data:www-data /var/www && \
+    # Setup Crond and Supervisor by default
+    (echo '*  *  *  *  * /usr/local/bin/php  /var/www/artisan schedule:run >> /dev/null 2>&1' > /etc/crontabs/www-data) && mkdir /etc/supervisor.d && rm -f /etc/crontabs/root && \
+    # Add PHP-FPM status and healthz endpoints
+    (echo -e "[www]\npm.status_path = /orchestration/php-fpm-status\nping.path = /healthz\nping.response = alive" > /usr/local/etc/php-fpm.d/zz-status.conf) && \
+    # Remove Build Dependencies
+    apk del -f .build-deps && \
+        docker-php-source delete && \
+    # Add PHP Config files
+    (cd /tmp && \
+        cp -Rp base/core/opcache.ini $PHP_INI_DIR/conf.d/ && \
+        cp -Rp base/core/php.ini $PHP_INI_DIR/ \
+    ) && \
+    # Add supervisor basic
+    (cd /tmp && cp -Rp base/core/master.ini /etc/supervisord.conf) && \
+    # Clean Base
+    rm -rf /tmp/base
 
 # Setup Working Dir
 WORKDIR /var/www
@@ -100,4 +108,4 @@ EXPOSE 9000
 EXPOSE 9090
 
 ENTRYPOINT ["tini", "--"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["php","/usr/local/bin/run-with-secrets.php", "/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

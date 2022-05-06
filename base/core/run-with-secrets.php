@@ -7,7 +7,7 @@
  * So I created this script that would gather these variables or files parse the JSON and expand the key => value into the environment.
  */
 
-$variableNames = $fileNames = [];
+$variableNames = $fileNames = $writeToFiles = [];
 
 if (isset($_SERVER['EXPAND_SECRETS_FROM_VARIABLE'])) {
     $variableNames = explode(",", $_SERVER['EXPAND_SECRETS_FROM_VARIABLE']);
@@ -17,16 +17,26 @@ if (isset($_SERVER['EXPAND_SECRETS_FROM_FILE'])) {
     $fileNames = explode(",", $_SERVER['EXPAND_SECRETS_FROM_FILE']);
 }
 
+if (isset($_SERVER['EXPAND_SECRETS_WRITE_TO_FILE'])) {
+    $writeToFiles = explode(",", $_SERVER['EXPAND_SECRETS_WRITE_TO_FILE']);
+}
+
 if (count($variableNames) > 0) {
     printf("Loading additional env from %s\n", implode(', ', $variableNames));
 } else {
-    printf("No EXPAND_SECRETS_FROM_VARIABLE set\n");
+    print("No EXPAND_SECRETS_FROM_VARIABLE set\n");
 }
 
 if (count($fileNames) > 0) {
     printf("Loading additional env from %s\n", implode(', ', $fileNames));
 } else {
-    printf("No EXPAND_SECRETS_FROM_FILE set\n");
+    print("No EXPAND_SECRETS_FROM_FILE set\n");
+}
+
+if (count($writeToFiles) > 0) {
+    printf("Writing files from variables content from %s\n", implode(', ', $fileNames));
+} else {
+    print("No EXPAND_SECRETS_WRITE_TO_FILE set\n");
 }
 
 $variableContents = [];
@@ -90,6 +100,46 @@ foreach ($variableContents as $variableContent) {
         putenv(
             sprintf('%s=%s', $envKey, $envValue)
         );
+    }
+}
+
+foreach ($writeToFiles as $fileSetting) {
+    $contentFormat = 'text';
+    $variableName = null;
+    $fileName = null;
+    $parsedVariable = null;
+
+    if (strpos($fileSetting, ':') !== false) {
+        list($fileSetting, $contentFormat) = explode(':', $fileSetting, 2);
+    }
+
+    if (strpos($fileSetting, '=') !== false) {
+        list($variableName, $fileName) = explode('=', $fileSetting, 2);
+    } else {
+        printf("Invalid setting for %s. You need to use VARIABLE=/file/name/here\n", $fileSetting);
+    }
+
+    if (! isset($_SERVER[$variableName])) {
+        printf("Variable not found %s\n", $variableName);
+    } else {
+        $parsedVariable = $_SERVER[$variableName];
+        $hasWrittenToFile = false;
+
+        switch ($contentFormat) {
+            case 'text':
+                $hasWrittenToFile = @file_put_contents($fileName, $parsedVariable);
+            break;
+            case 'base64':
+                $hasWrittenToFile = @file_put_contents($fileName, base64_decode($parsedVariable));
+            break;
+            default:
+                printf('Format %s not supported', $contentFormat);
+            break;
+        }
+
+        if ($hasWrittenToFile === false) {
+            printf("Error writting to file %s. Please check permissions, if the folder folder exists, and you are not running a readonly path.\n", $fileName);
+        }
     }
 }
 

@@ -45,7 +45,8 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer insta
 
 - [Composer](https://getcomposer.org/) (v2 - from Docker official image)
 - CRON (pre-installed and configured to work with Laravel Scheduler)
-- [Supervisor](http://supervisord.org)
+- [Go port of Supervisor](https://github.com/ochinchina/supervisord)
+  - See details in [Supervisord.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Supervisord.md)
 - ARM64 version
 - Nginx "modular" config. See [NGINX-Files.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/NGINX-Files.md)
 - Prometheus exporter for both PHP and NGINX (if you enable it setting the env variable `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`). See [Prometheus-Scrapper.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Prometheus-Scrapper.md)

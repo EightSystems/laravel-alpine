@@ -6,6 +6,8 @@ services:
     read_only: true
     environment:
       - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
+      - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'HELLO_WORLD={"world": "here"}'
     tmpfs:
       - /tmp
       - /run/nginx

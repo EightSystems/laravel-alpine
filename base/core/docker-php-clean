@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "Cleaning PHP includes and source files, and some other garbage stuff"
+rm -rf /usr/include
+rm -rf /usr/src
+rm -rf /usr/local/include

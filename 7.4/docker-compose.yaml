@@ -28,7 +28,9 @@ services:
       - ENV_VAR_FROM_DOCKER_COMPOSE=test
       - EXPAND_SECRETS_FROM_FILE=/variables/test.json
       - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'EXPAND_SECRETS_WRITE_TO_FILE=MY_VARIABLE_IN_BASE=/tmp/from-base64.txt:base64'
       - 'HELLO_WORLD={"world": "here"}'
+      - MY_VARIABLE_IN_BASE="aGVsbG8gd29ybGQgaW4gYmFzZTY0IQo="
       - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
     tmpfs:
       - /tmp
@@ -71,7 +73,9 @@ services:
       - ENV_VAR_FROM_DOCKER_COMPOSE=test
       - EXPAND_SECRETS_FROM_FILE=/variables/test.json
       - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'EXPAND_SECRETS_WRITE_TO_FILE=MY_VARIABLE_IN_BASE=/tmp/from-base64.txt:base64'
       - 'HELLO_WORLD={"world": "here"}'
+      - MY_VARIABLE_IN_BASE="aGVsbG8gd29ybGQgaW4gYmFzZTY0IQo="
       - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
     tmpfs:
       - /tmp
