@@ -42,7 +42,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         freetype-dev \
         mariadb-connector-c \
         libzip-dev \
-        libzip libevent openssl git libwebp libintl oniguruma tini bash && \
+        libzip libevent openssl git libwebp libintl oniguruma tini bash less && \
     # Add Prometheus Exporter
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
     # Add Composer
@@ -98,6 +98,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     ) && \
     # Add supervisor basic
     (cd /tmp && cp -Rp base/core/master.ini /etc/supervisord.conf) && \
+    (cd /tmp && cp -Rp base/core/supervisor.d/*.ini /etc/supervisor.d) && \
     # Clean Base
     rm -rf /tmp/base
 

@@ -62,7 +62,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         nginx \
         mariadb-connector-c \
         libzip-dev \
-        libzip libevent openssl git libwebp libintl oniguruma tini bash && \
+        libzip libevent openssl git libwebp libintl oniguruma tini bash less && \
     # Add Prometheus Exporter
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
     (curl -fsSL https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.10.0/nginx-prometheus-exporter_0.10.0_linux_$TARGETARCH.tar.gz | tar xvz -C /usr/bin "nginx-prometheus-exporter" ) && \
@@ -127,6 +127,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     ) && \
     # Add supervisor basic
     (cd /tmp && cp -Rp base/nginx/master.ini /etc/supervisord.conf) && \
+    (cd /tmp && cp -Rp base/nginx/supervisor.d/*.ini /etc/supervisor.d) && \
     # Setup nginx fixes
     sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf && \
         sed -i 's/\/var\/log\/nginx\/error\.log/\/dev\/stderr/g' /etc/nginx/nginx.conf && \
