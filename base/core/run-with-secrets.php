@@ -100,6 +100,8 @@ foreach ($variableContents as $variableContent) {
         putenv(
             sprintf('%s=%s', $envKey, $envValue)
         );
+
+        $_SERVER[$envKey] = $envValue;
     }
 }
 
