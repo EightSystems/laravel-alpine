@@ -29,6 +29,12 @@ build-tag/%:
 	@- if ! test -e $(DOCKERFILE_PATH); then echo "No such version"; exit 1; fi
 	docker build -t 8sistemas/laravel-alpine:$* -f $(DOCKERFILE_PATH)/Dockerfile .
 
+build-tag-xdebug/%:
+	@echo "Building for $*"
+	$(eval DOCKERFILE_PATH=$(shell echo $* | awk '!x{x=sub("-","/")}1'))
+	@- if ! test -e $(DOCKERFILE_PATH); then echo "No such version"; exit 1; fi
+	docker build -t 8sistemas/laravel-alpine:$*-xdebug -f $(DOCKERFILE_PATH)/Dockerfile . --build-arg BUILD_XDEBUG=1
+
 buildx-tag/%:
 	@echo "Building for $*"
 	$(eval DOCKERFILE_PATH=$(shell echo $* | awk '!x{x=sub("-","/")}1'))

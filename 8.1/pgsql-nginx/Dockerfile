@@ -21,8 +21,10 @@ LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vi
 
 ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.0.6
+ENV EXT_MCRYPT_VERSION=1.0.5
 
 ARG TARGETARCH
+ARG BUILD_XDEBUG=0
 
 # Composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -50,19 +52,21 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         libxml2-dev \
         bzip2-dev \
         postgresql-dev \
-        zip libevent-dev openssl-dev && \
+        icu-dev \
+        freetype-dev \
+        libzip-dev libevent-dev openssl-dev libmcrypt-dev && \
     # Add Production Dependencies
     apk add --update --no-cache \
         jpegoptim \
         pngquant \
         optipng \
         nano \
-        icu-dev \
-        freetype-dev \
+        icu \
+        freetype \
         nginx \
         libpq \
-        libzip-dev \
-        libzip libevent openssl git libwebp libintl oniguruma tini bash less && \
+        zip \
+        libzip libevent openssl git libwebp libintl oniguruma tini bash less libmcrypt && \
     # Add Prometheus Exporter
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
     (curl -fsSL https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.10.0/nginx-prometheus-exporter_0.10.0_linux_$TARGETARCH.tar.gz | tar xvz -C /usr/bin "nginx-prometheus-exporter" ) && \
@@ -78,8 +82,10 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     # Configure & Install Extension
     mkdir -p /usr/src/php/ext/redis \
         && mkdir -p /usr/src/php/ext/event \
+        && mkdir -p /usr/src/php/ext/mcrypt \
         && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
         && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
+        && curl -fsSL https://pecl.php.net/get/mcrypt-$EXT_MCRYPT_VERSION.tgz | tar xvz -C /usr/src/php/ext/mcrypt --strip 1 \
         && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ --with-webp=/usr/include \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
             mysqli \
@@ -96,7 +102,14 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
             gettext \
             mbstring \
             redis \
+            mcrypt \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
+        if [ "$BUILD_XDEBUG" = "1" ]; then \
+            apk add --no-cache --virtual .build-deps-xdebug $PHPIZE_DEPS; \
+            pecl install xdebug-3.1.5; \
+            docker-php-ext-enable xdebug; \
+            apk del -f .build-deps-xdebug; \
+        fi && \
     # Add Prometheus Exporter
     chmod +x /usr/bin/php-fpm-exporter && \
     chmod +x /usr/bin/nginx-prometheus-exporter && \
