@@ -49,15 +49,16 @@ jobs:
 
       - name: Build and export Docker image
         uses: docker/build-push-action@v2
+        if: github.event_name != 'pull_request'
         with:
           context: ./
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
           load: true
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-test
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Test Image with PHP modules list
+        if: github.event_name != 'pull_request'
         run: |
           docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-test php -m
 
@@ -71,12 +72,19 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Run Security Scan against ${{ matrix.php }}-${{ matrix.variant }}
+        uses: anchore/scan-action@v3
+        with:
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-${{ matrix.variant }}"
+          acs-report-enable: true
+          fail-build: false
+
       - name: Build and export Docker image (with Xdebug)
         uses: docker/build-push-action@v2
+        if: github.event_name != 'pull_request'
         with:
           context: ./
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
           load: true
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug-test
           labels: ${{ steps.meta.outputs.labels }}
@@ -84,27 +92,22 @@ jobs:
             BUILD_XDEBUG=1
 
       - name: Test Image with PHP modules list
+        if: github.event_name != 'pull_request'
         run: |
           docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug-test php -m
 
       - name: Build and push Docker image (with Xdebug)
         uses: docker/build-push-action@v2
+        if: github.event_name != 'pull_request'
         with:
           context: ./
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=1
-
-      - name: Run Security Scan against ${{ matrix.php }}-${{ matrix.variant }}
-        uses: anchore/scan-action@v3
-        with:
-          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-${{ matrix.variant }}"
-          acs-report-enable: true
-          fail-build: false
 
       - name: Upload Scan Report for ${{ matrix.php }}-${{ matrix.variant }}
         uses: github/codeql-action/upload-sarif@v2
