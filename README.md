@@ -19,11 +19,11 @@ You can use any of the versions-tag bellow in the following form:
 
 `version-tag` as in: `7.4-mysql-nginx`
 
-| Version | Tags                                   |
-| ------- | -------------------------------------- |
-| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug |
-| 8.0     | mysql, mysql-nginx, pgsql, pgsql-nginx |
-| 8.1     | mysql, mysql-nginx, pgsql, pgsql-nginx |
+| Version | Tags                                                                                                       |
+| ------- | ---------------------------------------------------------------------------------------------------------- |
+| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
+| 8.0     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
+| 8.1     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
 
 ## Pull it from Docker Registry
 
