@@ -83,6 +83,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
             mbstring \
             redis \
             mcrypt \
+            calendar \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             apk add --no-cache --virtual .build-deps-xdebug $PHPIZE_DEPS; \
