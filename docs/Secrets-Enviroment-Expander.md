@@ -39,3 +39,11 @@ This will only work if the place you want to write has read-write permissions to
 Same applies if the folder you are trying to write doesn't exists, or is owned by someone else.
 
 TLDR: We won't create the recursive folders, nor will write if we can't write to.
+
+## Debug
+
+Add `DEBUG_SECRETS` equals to `1` as an environment variable to see the debug messages.
+
+## Entrypoint
+
+This is used as the entrypoint for all the images, so your secrets will always be there as long as you keep the same entrypoint.

@@ -168,5 +168,5 @@ USER www-data
 EXPOSE 8080
 EXPOSE 9090
 
-ENTRYPOINT ["tini", "--"]
-CMD ["php","/usr/local/bin/run-with-secrets.php", "/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["tini", "--", "php", "/usr/local/bin/run-with-secrets.php"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

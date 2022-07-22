@@ -7,6 +7,13 @@
  * So I created this script that would gather these variables or files parse the JSON and expand the key => value into the environment.
  */
 
+function debugMessage($message, ...$values)
+{
+    if (isset($_SERVER['DEBUG_SECRETS']) && $_SERVER['DEBUG_SECRETS'] === '1') {
+        printf($message, ...$values);
+    }
+}
+
 $variableNames = $fileNames = $writeToFiles = [];
 
 if (isset($_SERVER['EXPAND_SECRETS_FROM_VARIABLE'])) {
@@ -22,21 +29,21 @@ if (isset($_SERVER['EXPAND_SECRETS_WRITE_TO_FILE'])) {
 }
 
 if (count($variableNames) > 0) {
-    printf("Loading additional env from %s\n", implode(', ', $variableNames));
+    debugMessage("Loading additional env from %s\n", implode(', ', $variableNames));
 } else {
-    print("No EXPAND_SECRETS_FROM_VARIABLE set\n");
+    debugMessage("No EXPAND_SECRETS_FROM_VARIABLE set\n");
 }
 
 if (count($fileNames) > 0) {
-    printf("Loading additional env from %s\n", implode(', ', $fileNames));
+    debugMessage("Loading additional env from %s\n", implode(', ', $fileNames));
 } else {
-    print("No EXPAND_SECRETS_FROM_FILE set\n");
+    debugMessage("No EXPAND_SECRETS_FROM_FILE set\n");
 }
 
 if (count($writeToFiles) > 0) {
-    printf("Writing files from variables content from %s\n", implode(', ', $fileNames));
+    debugMessage("Writing files from variables content from %s\n", implode(', ', $fileNames));
 } else {
-    print("No EXPAND_SECRETS_WRITE_TO_FILE set\n");
+    debugMessage("No EXPAND_SECRETS_WRITE_TO_FILE set\n");
 }
 
 $variableContents = [];
@@ -53,13 +60,13 @@ foreach ($variableNames as $variableName) {
         switch ($contentFormat) {
             case 'json':
                 $parsedVariable = @json_decode($_SERVER[$variableName], true);
-            break;
+                break;
             case 'ini':
                 $parsedVariable = @parse_ini_string($_SERVER[$variableName], false);
-            break;
+                break;
             default:
-                printf('Format %s not supported', $contentFormat);
-            break;
+                debugMessage('Format %s not supported', $contentFormat);
+                break;
         }
     }
 
@@ -80,13 +87,13 @@ foreach ($fileNames as $fileName) {
         switch ($contentFormat) {
             case 'json':
                 $parsedVariable = @json_decode(file_get_contents($fileName), true);
-            break;
+                break;
             case 'ini':
                 $parsedVariable = @parse_ini_file($fileName, false);
-            break;
+                break;
             default:
-                printf('Format %s not supported', $contentFormat);
-            break;
+                debugMessage('Format %s not supported', $contentFormat);
+                break;
         }
     }
 
@@ -118,11 +125,11 @@ foreach ($writeToFiles as $fileSetting) {
     if (strpos($fileSetting, '=') !== false) {
         list($variableName, $fileName) = explode('=', $fileSetting, 2);
     } else {
-        printf("Invalid setting for %s. You need to use VARIABLE=/file/name/here\n", $fileSetting);
+        debugMessage("Invalid setting for %s. You need to use VARIABLE=/file/name/here\n", $fileSetting);
     }
 
     if (! isset($_SERVER[$variableName])) {
-        printf("Variable not found %s\n", $variableName);
+        debugMessage("Variable not found %s\n", $variableName);
     } else {
         $parsedVariable = $_SERVER[$variableName];
         $hasWrittenToFile = false;
@@ -130,17 +137,17 @@ foreach ($writeToFiles as $fileSetting) {
         switch ($contentFormat) {
             case 'text':
                 $hasWrittenToFile = @file_put_contents($fileName, $parsedVariable);
-            break;
+                break;
             case 'base64':
                 $hasWrittenToFile = @file_put_contents($fileName, base64_decode($parsedVariable));
-            break;
+                break;
             default:
-                printf('Format %s not supported', $contentFormat);
-            break;
+                debugMessage('Format %s not supported', $contentFormat);
+                break;
         }
 
         if ($hasWrittenToFile === false) {
-            printf("Error writting to file %s. Please check permissions, if the folder folder exists, and you are not running a readonly path.\n", $fileName);
+            debugMessage("Error writting to file %s. Please check permissions, if the folder folder exists, and you are not running a readonly path.\n", $fileName);
         }
     }
 }

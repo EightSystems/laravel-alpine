@@ -21,7 +21,7 @@ You can use any of the versions-tag bellow in the following form:
 
 | Version | Tags                                   |
 | ------- | -------------------------------------- |
-| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx |
+| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug |
 | 8.0     | mysql, mysql-nginx, pgsql, pgsql-nginx |
 | 8.1     | mysql, mysql-nginx, pgsql, pgsql-nginx |
 
@@ -95,13 +95,16 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - zip
 - redis
 - event
+- calendar
 
 ### Small additions
 
 - opcache
 - gettext
 - mbstring
+- mcrypt
 - gd (with jpeg, png, freetype, gif, and webp support)
+- XDebug (with the `-xdebug` tags)
 
 ## Adding other PHP Extension
 
