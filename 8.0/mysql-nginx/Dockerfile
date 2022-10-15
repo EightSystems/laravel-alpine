@@ -22,6 +22,7 @@ LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vi
 ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.0.6
 ENV EXT_MCRYPT_VERSION=1.0.5
+ENV PS1="\[\033[01;32m\]\u@\h:\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 
 ARG TARGETARCH
 ARG BUILD_XDEBUG=0
