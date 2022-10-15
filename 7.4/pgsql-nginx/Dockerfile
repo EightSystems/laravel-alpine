@@ -69,8 +69,8 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         zip \
         libzip libevent openssl git libwebp libintl oniguruma tini bash less libmcrypt && \
     # Add Prometheus Exporter
-    (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.0.4/php-fpm_exporter_2.0.4_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
-    (curl -fsSL https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.10.0/nginx-prometheus-exporter_0.10.0_linux_$TARGETARCH.tar.gz | tar xvz -C /usr/bin "nginx-prometheus-exporter" ) && \
+    (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.2.0/php-fpm_exporter_2.2.0_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
+    (curl -fsSL https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.11.0/nginx-prometheus-exporter_0.11.0_linux_$TARGETARCH.tar.gz | tar xvz -C /usr/bin "nginx-prometheus-exporter" ) && \
     # Add Composer
     (curl -fsSL https://github.com/composer/composer/releases/download/2.3.5/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
     # Add supervisor static
