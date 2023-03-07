@@ -45,7 +45,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         nano \
         icu \
         freetype \
-        libpq \
+        libpq postgresql14-client \
         zip \
         libzip libevent openssl git libwebp libintl oniguruma tini bash less libmcrypt && \
     # Add Prometheus Exporter

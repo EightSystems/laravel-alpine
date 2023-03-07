@@ -67,7 +67,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
         icu \
         freetype \
         nginx \
-        mariadb-connector-c \
+        mariadb-connector-c mariadb-client \
         zip libzip libevent openssl git libwebp libintl oniguruma tini bash less libmcrypt && \
     # Add Prometheus Exporter
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.2.0/php-fpm_exporter_2.2.0_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
