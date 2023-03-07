@@ -17,16 +17,17 @@ You can either pull it from ghcr (Github Container Registry) or DockerHub Regist
 
 You can use any of the versions-tag bellow in the following form:
 
-`version-tag` as in: `7.4-mysql-nginx`
+`version-tag` as in: `8.1-mysql-nginx`
 
-| Version        | Tags                                                                                                       | Notes                                         |
-| -------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| 7.4            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
-| 8.0            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
-| 8.1            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
-| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
-| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
-| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
+| Version        | Tags                                                                                                       | Notes                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 7.4            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility, not being updated anymore. |
+| 8.0            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility                             |
+| 8.1            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility                             |
+| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16, not being updated anymore.                                   |
+| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
+| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
+| 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
 
 ## Pull it from Docker Registry
 
@@ -73,7 +74,7 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-alpine3.16-mysql "com
 
 ## Other Details
 
-- Alpine base image 3.14
+- Alpine base image 3.16
 - Uses DockerHub php base image
 - Security Scan enabled on a biweekly basis (using Anchore)
 - Supervisor has `supervisorctl` support enabled on all tags
@@ -88,7 +89,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - pgsql (pgsql images)
 - pdo_pgsql (pgsql images)
 - sockets
-- json (except for PHP 8.0 as it's builtin)
+- json (except for PHP 8.0+ as it's builtin)
 - intl
 - xml
 - bz2

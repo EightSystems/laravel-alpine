@@ -10,9 +10,9 @@ help:
 	@echo "build-tag/TAGNAME"
 
 build:
-	@$(MAKE) build/7.4
 	@$(MAKE) build/8.0
 	@$(MAKE) build/8.1
+	@$(MAKE) build/8.2
 
 build/%:
 	@echo "Building for $*"
