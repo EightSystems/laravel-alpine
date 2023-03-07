@@ -15,7 +15,7 @@ RUN apk add --no-cache git make && \
         git checkout v0.4.0 && \
         make vendor && CGO_ENABLED=0 make install
 
-FROM php:8.0-fpm-alpine3.14
+FROM php:8.0-fpm-alpine3.16
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
@@ -40,8 +40,8 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     (mkdir -p /var/www/public && cd /tmp && cp -Rp base/nginx/index.php /var/www/public/index.php) && \
     # Add Repositories
     rm -f /etc/apk/repositories &&\
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories) && \
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories) && \
     # Add Build Dependencies
     apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
         zlib-dev \

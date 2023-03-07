@@ -56,13 +56,13 @@ jobs:
           context: ./
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
           load: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-test
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-test php -m
 
       - name: Build Docker image and Push
         uses: docker/build-push-action@v2
@@ -71,14 +71,14 @@ jobs:
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Run Security Scan against ${{ matrix.php }}-${{ matrix.variant }}
+      - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
         uses: anchore/scan-action@v3
         continue-on-error: true
         with:
-          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-${{ matrix.variant }}"
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}"
           acs-report-enable: true
           fail-build: false
 
@@ -89,7 +89,7 @@ jobs:
           context: ./
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
           load: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug-test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug-test
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=1
@@ -97,7 +97,7 @@ jobs:
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug-test php -m
 
       - name: Build and push Docker image (with Xdebug)
         uses: docker/build-push-action@v2
@@ -107,12 +107,12 @@ jobs:
           file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-${{ matrix.variant }}-xdebug
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=1
 
-      - name: Upload Scan Report for ${{ matrix.php }}-${{ matrix.variant }}
+      - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
         uses: github/codeql-action/upload-sarif@v2
         continue-on-error: true
         with:

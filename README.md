@@ -19,18 +19,21 @@ You can use any of the versions-tag bellow in the following form:
 
 `version-tag` as in: `7.4-mysql-nginx`
 
-| Version | Tags                                                                                                       |
-| ------- | ---------------------------------------------------------------------------------------------------------- |
-| 7.4     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
-| 8.0     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
-| 8.1     | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug |
+| Version        | Tags                                                                                                       | Notes                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 7.4            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
+| 8.0            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
+| 8.1            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility |
+| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
+| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
+| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                   |
 
 ## Pull it from Docker Registry
 
 To pull the docker image:
 
 ```bash
-docker pull 8sistemas/laravel-alpine:8.1-mysql
+docker pull 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
 ```
 
 ## Usage
@@ -38,7 +41,7 @@ docker pull 8sistemas/laravel-alpine:8.1-mysql
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer install --prefer-dist"
+docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-alpine3.16-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
@@ -62,7 +65,7 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-mysql "composer insta
   - See [opcache.ini](https://github.com/EightSystems/laravel-alpine/blob/master/base/core/opcache.ini)
 - Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
 - Small memory footprint
-  - 8.1-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
+  - 8.1-alpine3.16-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
     - This allows you to run your container with as little of 128MB of RAM still giving some room for your application.
 - Readonly filesystem support (with some paths needed being tmpfs)
   - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/docker-compose.yaml)
@@ -111,7 +114,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-mysql
+FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
 USER root
 RUN docker-php-ext-install memcached
 USER www-data
@@ -120,7 +123,7 @@ USER www-data
 ## Adding custom CRON
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-mysql
+FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
 RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
 
@@ -145,7 +148,7 @@ stdout_logfile_maxbytes=0
 On your Docker image
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-mysql
+FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
 USER root
 ADD horizon.ini /etc/supervisor.d/
 USER www-data

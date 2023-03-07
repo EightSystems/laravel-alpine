@@ -1,4 +1,4 @@
-FROM php:7.4-fpm-alpine3.14
+FROM php:7.4-fpm-alpine3.16
 
 LABEL org.opencontainers.image.authors="Kashyap Merai <kashyapk62@gmail.com>, Vin <vin@8sistemas.com>"
 
@@ -21,8 +21,8 @@ COPY base /tmp/base
 RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/core/run-with-secrets.php base/core/start-if-env-variable-is-set.sh /usr/local/bin/) && \
     # Add Repositories
     rm -f /etc/apk/repositories &&\
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositories) && \
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories) && \
     # Add Build Dependencies
     apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
         zlib-dev \
