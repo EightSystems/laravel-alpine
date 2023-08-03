@@ -73,7 +73,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.2.0/php-fpm_exporter_2.2.0_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
     (curl -fsSL https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.11.0/nginx-prometheus-exporter_0.11.0_linux_$TARGETARCH.tar.gz | tar xvz -C /usr/bin "nginx-prometheus-exporter" ) && \
     # Add Composer
-    (curl -fsSL https://github.com/composer/composer/releases/download/2.3.5/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
+    (curl -fsSL https://github.com/composer/composer/releases/download/2.5.8/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
     # Add supervisor static
     if [ "$TARGETARCH" == "amd64" ]; then \
         curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_64-bit.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
