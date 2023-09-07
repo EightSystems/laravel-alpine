@@ -56,7 +56,7 @@ RUN (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/c
     if [ "$TARGETARCH" == "amd64" ]; then \
         curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_64-bit.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
     else \
-        curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_ARM64.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
+        curl -fsSL https://github.com/ochinchina/supervisord/releases/download/v0.7.3/supervisord_0.7.3_Linux_ARMv7.tar.gz | tar xvz -C /usr/bin --wildcards --strip 1 "*/supervisord"; \
     fi && \
     chmod +x /usr/bin/supervisord && \
     # Configure & Install Extension
