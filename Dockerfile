@@ -102,7 +102,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         freetype-dev \
         libzip-dev \
         libevent-dev openssl-dev libmcrypt-dev \
-        libxml2-dev imagemagick-dev libtool \
+        libxml2-dev imagemagick-dev libtool $PHPIZE_DEPS \
     # Add Production Dependencies
     && apk add --update --no-cache \
         jpegoptim \
@@ -165,10 +165,8 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         (printf "\n" | pecl install imagick) && \
         docker-php-ext-enable imagick && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
-            apk add --no-cache --virtual .build-deps-xdebug $PHPIZE_DEPS; \
             pecl install xdebug-3.1.5; \
             docker-php-ext-enable xdebug; \
-            apk del -f .build-deps-xdebug; \
         fi && \
     # Add Prometheus Exporter
     chmod +x /usr/bin/php-fpm-exporter && \
