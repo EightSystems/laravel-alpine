@@ -97,6 +97,8 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - redis
 - event
 - calendar
+- imagick
+- soap
 
 ### Small additions
 

@@ -102,6 +102,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         freetype-dev \
         libzip-dev \
         libevent-dev openssl-dev libmcrypt-dev \
+        libxml2-dev imagemagick-dev libtool \
     # Add Production Dependencies
     && apk add --update --no-cache \
         jpegoptim \
@@ -111,7 +112,9 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         icu \
         freetype \
         ${DEPS_NAME} \
-        zip libzip libevent openssl git libwebp libintl oniguruma tini bash less libmcrypt sudo \
+        zip libzip libevent openssl git libwebp libintl \
+        oniguruma tini bash less libmcrypt sudo \
+        libxml2 imagemagick \
     # Add nginx or not
     && if [ "$HAS_NGINX" == "1" ] ; then \
         apk add --no-cache nginx \
@@ -157,7 +160,10 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
             redis \
             mcrypt \
             calendar \
+            soap \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
+        (printf "\n" | pecl install imagick) && \
+        docker-php-ext-enable imagick && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             apk add --no-cache --virtual .build-deps-xdebug $PHPIZE_DEPS; \
             pecl install xdebug-3.1.5; \
