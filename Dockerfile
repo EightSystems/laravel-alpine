@@ -1,6 +1,6 @@
 ARG PHP_VERSION=7.4
 
-FROM --platform=$BUILDPLATFORM golang:1.18-alpine3.16 AS build-supervisord
+FROM golang:1.18-alpine3.16 AS build-supervisord
 
 ARG TARGETOS TARGETARCH
 
@@ -8,7 +8,7 @@ ARG TARGETOS TARGETARCH
 ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 
-RUN apk add --no-cache git gcc gcc-cross-embedded curl musl-dev && \
+RUN apk add --no-cache git gcc curl musl-dev && \
     mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
     mkdir -p $GOPATH/src/github.com/google && \
     # Install Go Tools
@@ -23,7 +23,7 @@ RUN apk add --no-cache git gcc gcc-cross-embedded curl musl-dev && \
         GOOS=$TARGETOS GOARCH=$TARGETARCH \
             go build -tags release -a -ldflags "-linkmode external -extldflags -static" -o ${GOPATH}/bin/supervisord
 
-FROM --platform=$BUILDPLATFORM golang:1.18-alpine3.16 AS build-exporter-merger
+FROM golang:1.18-alpine3.16 AS build-exporter-merger
 
 ARG TARGETOS TARGETARCH
 
@@ -31,7 +31,7 @@ ARG TARGETOS TARGETARCH
 ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 ENV GO111MODULE=off
-RUN apk add --no-cache gcc gcc-cross-embedded git make && \
+RUN apk add --no-cache gcc git make && \
     mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
     # Install Go Tools
     go get -u golang.org/x/lint/golint && \

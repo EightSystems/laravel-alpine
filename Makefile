@@ -30,7 +30,7 @@ build-tag-mysql/%:
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=0" \
-		 -f 7.4/mysql-nginx/Dockerfile .
+		 -f ./Dockerfile .
 
 build-tag-mysql-nginx/%:
 	@echo "Building for $*"
@@ -38,7 +38,7 @@ build-tag-mysql-nginx/%:
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=1" \
-		 -f 7.4/mysql-nginx/Dockerfile .
+		 -f ./Dockerfile .
 
 build-tag-pgsql/%:
 	@echo "Building for $*"
@@ -46,7 +46,7 @@ build-tag-pgsql/%:
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=0" \
-		 -f 7.4/mysql-nginx/Dockerfile .
+		 -f ./Dockerfile .
 
 build-tag-pgsql-nginx/%:
 	@echo "Building for $*"
@@ -54,4 +54,4 @@ build-tag-pgsql-nginx/%:
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=1" \
-		 -f 7.4/mysql-nginx/Dockerfile .
+		 -f ./Dockerfile .
