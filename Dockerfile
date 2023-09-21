@@ -8,7 +8,7 @@ ARG TARGETOS TARGETARCH
 ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 
-RUN apk add --no-cache git gcc curl musl-dev && \
+RUN apk add --no-cache git gcc gcc-cross-embedded curl musl-dev && \
     mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
     mkdir -p $GOPATH/src/github.com/google && \
     # Install Go Tools
@@ -31,7 +31,7 @@ ARG TARGETOS TARGETARCH
 ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 ENV GO111MODULE=off
-RUN apk add --no-cache git make && \
+RUN apk add --no-cache gcc gcc-cross-embedded git make && \
     mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
     # Install Go Tools
     go get -u golang.org/x/lint/golint && \
