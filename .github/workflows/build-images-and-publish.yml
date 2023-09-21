@@ -18,28 +18,21 @@ jobs:
       max-parallel: 12
       matrix:
         php: ["8.0", "8.1", "8.2"]
-        variant: [
-          {
-            "tag": "mysql",
-            "has_nginx": 0,
-            "database_module": "mysqli"
-          },
-          {
-            "tag": "mysql-nginx",
-            "has_nginx": 1,
-            "database_module": "mysqli"
-          },
-          {
-            "tag": "pgsql-nginx",
-            "has_nginx": 1,
-            "database_module": "pgsql"
-          },
-          {
-            "tag": "pgsql",
-            "has_nginx": 0,
-            "database_module": "pgsql"
-          }
-        ]
+        variant:
+          [
+            { "tag": "mysql", "has_nginx": 0, "database_module": "mysqli" },
+            {
+              "tag": "mysql-nginx",
+              "has_nginx": 1,
+              "database_module": "mysqli",
+            },
+            {
+              "tag": "pgsql-nginx",
+              "has_nginx": 1,
+              "database_module": "pgsql",
+            },
+            { "tag": "pgsql", "has_nginx": 0, "database_module": "pgsql" },
+          ]
     permissions:
       contents: read
       packages: write
@@ -84,8 +77,8 @@ jobs:
           build-args: |
             BUILD_XDEBUG=0
             PHP_VERSION=${{ matrix.php }}
-		        DATABASE_MODULE=${{ matrix.variant.database_module }}
-		        HAS_NGINX=${{ matrix.variant.has_nginx }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
@@ -106,8 +99,8 @@ jobs:
           build-args: |
             BUILD_XDEBUG=0
             PHP_VERSION=${{ matrix.php }}
-		        DATABASE_MODULE=${{ matrix.variant.database_module }}
-		        HAS_NGINX=${{ matrix.variant.has_nginx }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
         uses: anchore/scan-action@v3
@@ -128,8 +121,8 @@ jobs:
           build-args: |
             BUILD_XDEBUG=1
             PHP_VERSION=${{ matrix.php }}
-		        DATABASE_MODULE=${{ matrix.variant.database_module }}
-		        HAS_NGINX=${{ matrix.variant.has_nginx }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
@@ -149,8 +142,8 @@ jobs:
           build-args: |
             BUILD_XDEBUG=1
             PHP_VERSION=${{ matrix.php }}
-		        DATABASE_MODULE=${{ matrix.variant.database_module }}
-		        HAS_NGINX=${{ matrix.variant.has_nginx }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
         uses: github/codeql-action/upload-sarif@v2
