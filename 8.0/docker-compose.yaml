@@ -1,7 +1,7 @@
 version: "3"
 services:
   mysql:
-    image: 8sistemas/laravel-alpine:8.0-mysql
+    image: 8sistemas/laravel-alpine:8.0-mysql-alpine3.16
     user: "82:82"
     read_only: true
     environment:
@@ -12,6 +12,9 @@ services:
       - /var/lib/nginx/tmp
     cap_drop:
       - ALL
+    cap_add:
+      - setuid
+      - setgid
     ports:
       - 9092:9090
     deploy:
@@ -19,7 +22,7 @@ services:
         limits:
           memory: 128m
   mysql-nginx:
-    image: 8sistemas/laravel-alpine:8.0-mysql-nginx
+    image: 8sistemas/laravel-alpine:8.0-mysql-nginx-alpine3.16
     user: "82:82"
     read_only: true
     volumes:
@@ -36,6 +39,9 @@ services:
       - /var/lib/nginx/tmp
     cap_drop:
       - ALL
+    cap_add:
+      - setuid
+      - setgid
     ports:
       - 8090:8080
       - 9090:9090
@@ -44,7 +50,7 @@ services:
         limits:
           memory: 128m
   pgsql:
-    image: 8sistemas/laravel-alpine:8.0-pgsql
+    image: 8sistemas/laravel-alpine:8.0-pgsql-alpine3.16
     user: "82:82"
     read_only: true
     environment:
@@ -55,6 +61,9 @@ services:
       - /var/lib/nginx/tmp
     cap_drop:
       - ALL
+    cap_add:
+      - setuid
+      - setgid
     ports:
       - 9093:9090
     deploy:
@@ -62,7 +71,7 @@ services:
         limits:
           memory: 128m
   pgsql-nginx:
-    image: 8sistemas/laravel-alpine:8.0-pgsql-nginx
+    image: 8sistemas/laravel-alpine:8.0-pgsql-nginx-alpine3.16
     user: "82:82"
     read_only: true
     volumes:
@@ -79,6 +88,9 @@ services:
       - /var/lib/nginx/tmp
     cap_drop:
       - ALL
+    cap_add:
+      - setuid
+      - setgid
     ports:
       - 8091:8080
       - 9091:9090

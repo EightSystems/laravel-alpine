@@ -10,6 +10,7 @@ help:
 	@echo "build-tag/TAGNAME"
 
 build:
+	@$(MAKE) build/7.4
 	@$(MAKE) build/8.0
 	@$(MAKE) build/8.1
 	@$(MAKE) build/8.2
@@ -18,25 +19,39 @@ build/%:
 	@echo "Building for $*"
 	@- if ! test -e $*; then echo "No such version"; exit 1; fi
 
-	@$(MAKE) build-tag/$*-mysql
-	@$(MAKE) build-tag/$*-mysql-nginx
-	@$(MAKE) build-tag/$*-pgsql
-	@$(MAKE) build-tag/$*-pgsql-nginx
+	@$(MAKE) build-tag-mysql/$*
+	@$(MAKE) build-tag-mysql-nginx/$*
+	@$(MAKE) build-tag-pgsql/$*
+	@$(MAKE) build-tag-pgsql-nginx/$*
 
-build-tag/%:
+build-tag-mysql/%:
 	@echo "Building for $*"
-	$(eval DOCKERFILE_PATH=$(shell echo $* | awk '!x{x=sub("-","/")}1'))
-	@- if ! test -e $(DOCKERFILE_PATH); then echo "No such version"; exit 1; fi
-	docker build -t 8sistemas/laravel-alpine:$*-alpine3.16 -f $(DOCKERFILE_PATH)/Dockerfile .
+	docker build -t 8sistemas/laravel-alpine:$*-mysql-alpine3.16 \
+		--build-arg="PHP_VERSION=$*" \
+		--build-arg="DATABASE_MODULE=mysqli" \
+		--build-arg="HAS_NGINX=0" \
+		 -f 7.4/mysql-nginx/Dockerfile .
 
-build-tag-xdebug/%:
+build-tag-mysql-nginx/%:
 	@echo "Building for $*"
-	$(eval DOCKERFILE_PATH=$(shell echo $* | awk '!x{x=sub("-","/")}1'))
-	@- if ! test -e $(DOCKERFILE_PATH); then echo "No such version"; exit 1; fi
-	docker build -t 8sistemas/laravel-alpine:$*-xdebug-alpine3.16 -f $(DOCKERFILE_PATH)/Dockerfile . --build-arg BUILD_XDEBUG=1
+	docker build -t 8sistemas/laravel-alpine:$*-mysql-nginx-alpine3.16 \
+		--build-arg="PHP_VERSION=$*" \
+		--build-arg="DATABASE_MODULE=mysqli" \
+		--build-arg="HAS_NGINX=1" \
+		 -f 7.4/mysql-nginx/Dockerfile .
 
-buildx-tag/%:
+build-tag-pgsql/%:
 	@echo "Building for $*"
-	$(eval DOCKERFILE_PATH=$(shell echo $* | awk '!x{x=sub("-","/")}1'))
-	@- if ! test -e $(DOCKERFILE_PATH); then echo "No such version"; exit 1; fi
-	docker buildx build -t 8sistemas/laravel-alpine:$*-alpine3.16 -f $(DOCKERFILE_PATH)/Dockerfile --platform linux/amd64,linux/arm64 .
+	docker build -t 8sistemas/laravel-alpine:$*-pgsql-alpine3.16 \
+		--build-arg="PHP_VERSION=$*" \
+		--build-arg="DATABASE_MODULE=pgsql" \
+		--build-arg="HAS_NGINX=0" \
+		 -f 7.4/mysql-nginx/Dockerfile .
+
+build-tag-pgsql-nginx/%:
+	@echo "Building for $*"
+	docker build -t 8sistemas/laravel-alpine:$*-pgsql-nginx-alpine3.16 \
+		--build-arg="PHP_VERSION=$*" \
+		--build-arg="DATABASE_MODULE=pgsql" \
+		--build-arg="HAS_NGINX=1" \
+		 -f 7.4/mysql-nginx/Dockerfile .

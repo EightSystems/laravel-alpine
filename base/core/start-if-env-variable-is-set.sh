@@ -2,7 +2,7 @@
 
 function keepRunning() {
     while true; do
-        sleep 10
+        sleep 60
     done
 
     exit 0

@@ -17,24 +17,21 @@ You can either pull it from ghcr (Github Container Registry) or DockerHub Regist
 
 You can use any of the versions-tag bellow in the following form:
 
-`version-tag` as in: `8.1-mysql-nginx`
+`version-tag` as in: `8.1-alpine3.16-mysql-nginx`
 
-| Version        | Tags                                                                                                       | Notes                                                                     |
-| -------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| 7.4            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility, not being updated anymore. |
-| 8.0            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility                             |
-| 8.1            | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.14, kept for backwards compatibility                             |
-| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16, not being updated anymore.                                   |
-| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
-| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
-| 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16                                                               |
+| Version        | Tags                                                                                                       | Notes       |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
+| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
+| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
+| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
+| 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
 
 ## Pull it from Docker Registry
 
 To pull the docker image:
 
 ```bash
-docker pull 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
+docker pull 8sistemas/laravel-alpine:8.2-alpine3.16-mysql
 ```
 
 ## Usage
@@ -42,7 +39,7 @@ docker pull 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.1-alpine3.16-mysql "composer install --prefer-dist"
+docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.2-alpine3.16-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
@@ -115,7 +112,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
+FROM 8sistemas/laravel-alpine:8.2-alpine3.16-mysql
 USER root
 RUN docker-php-ext-install memcached
 USER www-data
@@ -124,7 +121,7 @@ USER www-data
 ## Adding custom CRON
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
+FROM 8sistemas/laravel-alpine:8.2-alpine3.16-mysql
 RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
 
@@ -149,13 +146,26 @@ stdout_logfile_maxbytes=0
 On your Docker image
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql
+FROM 8sistemas/laravel-alpine:8.2-alpine3.16-mysql
 USER root
 ADD horizon.ini /etc/supervisor.d/
 USER www-data
 ```
 
 For more details on supervisor config http://supervisord.org/configuration.html
+
+## Docker capabilities
+
+You can basically drop all the capabilities as you can see in the example docker-compose, and kube files, but we do need the `setuid` and `setgid` capabitilies to be able to run `CRON`, if you remove these capabilities please also disable cron in supervisor with a simple `rm -f /etc/supervisor.d/01_crond.ini` inside your `Dockerfile`.
+
+For `CRON` to run we need to use `sudo` to elevate our privileges to root even though the container run as `www-data (82)` by default.
+So we added a simple `/etc/sudoers.d/crond-www-data` with the following content:
+
+```
+ALL ALL = (root) NOPASSWD: /usr/sbin/crond'
+```
+
+This allows any user to run the `crond` command, even though `sudo` is bad, this was we prevent wide open access.
 
 ## Troubleshooting / Issues / Contributing
 

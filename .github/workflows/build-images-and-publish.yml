@@ -18,7 +18,28 @@ jobs:
       max-parallel: 12
       matrix:
         php: ["8.0", "8.1", "8.2"]
-        variant: ["mysql", "mysql-nginx", "pgsql-nginx", "pgsql"]
+        variant: [
+          {
+            "tag": "mysql",
+            "has_nginx": 0,
+            "database_module": "mysqli"
+          },
+          {
+            "tag": "mysql-nginx",
+            "has_nginx": 1,
+            "database_module": "mysqli"
+          },
+          {
+            "tag": "pgsql-nginx",
+            "has_nginx": 1,
+            "database_module": "pgsql"
+          },
+          {
+            "tag": "pgsql",
+            "has_nginx": 0,
+            "database_module": "pgsql"
+          }
+        ]
     permissions:
       contents: read
       packages: write
@@ -54,31 +75,45 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           context: ./
-          file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
+          file: ./Dockerfile
           load: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_XDEBUG=0
+            PHP_VERSION=${{ matrix.php }}
+		        DATABASE_MODULE=${{ matrix.variant.database_module }}
+		        HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test php -m
 
       - name: Build Docker image and Push
         uses: docker/build-push-action@v4
         with:
           context: ./
-          file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
+          file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_XDEBUG=0
+            PHP_VERSION=${{ matrix.php }}
+		        DATABASE_MODULE=${{ matrix.variant.database_module }}
+		        HAS_NGINX=${{ matrix.variant.has_nginx }}
 
-      - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
+      - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
         uses: anchore/scan-action@v3
         continue-on-error: true
         with:
-          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}"
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}"
           fail-build: false
 
       - name: Build and export Docker image (with Xdebug)
@@ -86,32 +121,38 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           context: ./
-          file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
+          file: ./Dockerfile
           load: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug-test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=1
+            PHP_VERSION=${{ matrix.php }}
+		        DATABASE_MODULE=${{ matrix.variant.database_module }}
+		        HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test php -m
 
       - name: Build and push Docker image (with Xdebug)
         uses: docker/build-push-action@v4
         if: github.event_name != 'pull_request'
         with:
           context: ./
-          file: ./${{ matrix.php }}/${{ matrix.variant }}/Dockerfile
+          file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant }}-xdebug
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=1
+            PHP_VERSION=${{ matrix.php }}
+		        DATABASE_MODULE=${{ matrix.variant.database_module }}
+		        HAS_NGINX=${{ matrix.variant.has_nginx }}
 
-      - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant }}
+      - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
         uses: github/codeql-action/upload-sarif@v2
         continue-on-error: true
         with:

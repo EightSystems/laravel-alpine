@@ -2,13 +2,14 @@
 
 ## Supported Versions
 
-We use Docker PHP images with Alpine versions 3.14 (in the hope 3.15 will have all the needed packages soon)
+We use Docker PHP images with Alpine versions 3.16
 
 | Version | Supported          |
 | ------- | ------------------ |
 | 7.4     | :white_check_mark: |
 | 8.0     | :white_check_mark: |
 | 8.1     | :white_check_mark: |
+| 8.2     | :white_check_mark: |
 | < 7.4   | :x:                |
 
 ## Reporting a Vulnerability
