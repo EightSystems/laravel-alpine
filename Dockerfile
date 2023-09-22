@@ -165,7 +165,9 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         (printf "\n" | pecl install imagick) && \
         docker-php-ext-enable imagick && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
-            pecl install xdebug-3.1.5; \
+            if [ "$PHP_VERSION" == "7.4" ]; then \
+                pecl install xdebug-3.1.5; \
+            else pecl install xdebug-3.2.2; fi && \
             docker-php-ext-enable xdebug; \
         fi && \
     # Add Prometheus Exporter
