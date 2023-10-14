@@ -57,6 +57,9 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.2-alpine3.16-mysql "com
     - exporter-merger:0.4.0
 - Secrets Manager Environment Expander
   - See [Secrets-Environment-Expander.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Secrets-Environment-Expander.md)
+- Changing users/group UID and GID
+  - This helps when your containers need to connect with some shared NFS server and you need to match the UID/GID.
+  - See [Change-User-Uid-And-Gid.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Change-User-Uid-And-Gid.md)
 - PHP Production ini values
   - See [php.ini](https://github.com/EightSystems/laravel-alpine/blob/master/base/core/php.ini)
 - Opcache Support

@@ -72,7 +72,10 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     else \
         export BASE_DIRECTORY="core"; \
     fi && \
-    (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl base/core/run-with-secrets.php base/core/start-if-env-variable-is-set.sh base/core/crond.sh /usr/local/bin/) && \
+    (cd /tmp && cp -Rp base/core/docker-php-clean base/core/supervisorctl \
+        base/core/run-with-secrets.php base/core/start-if-env-variable-is-set.sh \
+        base/core/crond.sh base/core/change-user-uid-and-gid.sh \
+        /usr/local/bin/) && \
     # Add a default phpinfo file
     (mkdir -p /var/www/public && cd /tmp && cp -Rp base/nginx/index.php /var/www/public/index.php) && \
     # Add Repositories
@@ -113,7 +116,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         freetype \
         ${DEPS_NAME} \
         zip libzip libevent openssl git libwebp libintl \
-        oniguruma tini bash less libmcrypt sudo \
+        oniguruma tini bash less libmcrypt sudo shadow \
         libxml2 imagemagick \
     # Add nginx or not
     && if [ "$HAS_NGINX" == "1" ] ; then \
@@ -176,7 +179,9 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     chown -R www-data:www-data /var/www \
         && addgroup www-data tty && \
     # Executable to helpers
-    chmod +x /usr/local/bin/run-with-secrets.php /usr/local/bin/start-if-env-variable-is-set.sh /usr/local/bin/docker-php-clean /usr/local/bin/supervisorctl /usr/local/bin/crond.sh && \
+    chmod +x /usr/local/bin/run-with-secrets.php /usr/local/bin/start-if-env-variable-is-set.sh \
+        /usr/local/bin/docker-php-clean /usr/local/bin/supervisorctl /usr/local/bin/crond.sh \
+        /usr/local/bin/change-user-uid-and-gid.sh && \
     # Setup Crond and Supervisor by default
         # Allow all users to run crond as root
         (echo 'ALL ALL = (root) NOPASSWD: /usr/sbin/crond' > /etc/sudoers.d/crond-www-data) && \
