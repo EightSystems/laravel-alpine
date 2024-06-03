@@ -1,0 +1,102 @@
+version: "3"
+services:
+  mysql:
+    image: 8sistemas/laravel-alpine:8.3-mysql-alpine3.20
+    user: "82:82"
+    read_only: true
+    environment:
+      - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
+      - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'HELLO_WORLD={"world": "here"}'
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - setuid
+      - setgid
+    ports:
+      - 9092:9090
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+  mysql-nginx:
+    image: 8sistemas/laravel-alpine:8.3-mysql-nginx-alpine3.20
+    user: "82:82"
+    read_only: true
+    volumes:
+      - ./test.json:/variables/test.json
+    environment:
+      - ENV_VAR_FROM_DOCKER_COMPOSE=test
+      - EXPAND_SECRETS_FROM_FILE=/variables/test.json
+      - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'HELLO_WORLD={"world": "here"}'
+      - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - setuid
+      - setgid
+    ports:
+      - 8090:8080
+      - 9090:9090
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+  pgsql:
+    image: 8sistemas/laravel-alpine:8.3-pgsql-alpine3.20
+    user: "82:82"
+    read_only: true
+    environment:
+      - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - setuid
+      - setgid
+    ports:
+      - 9093:9090
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+  pgsql-nginx:
+    image: 8sistemas/laravel-alpine:8.3-pgsql-nginx-alpine3.20
+    user: "82:82"
+    read_only: true
+    volumes:
+      - ./test.json:/variables/test.json
+    environment:
+      - ENV_VAR_FROM_DOCKER_COMPOSE=test
+      - EXPAND_SECRETS_FROM_FILE=/variables/test.json
+      - EXPAND_SECRETS_FROM_VARIABLE=HELLO_WORLD
+      - 'HELLO_WORLD={"world": "here"}'
+      - ENABLE_PROMETHEUS_EXPORTER_RUNNER=1
+    tmpfs:
+      - /tmp
+      - /run/nginx
+      - /var/lib/nginx/tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - setuid
+      - setgid
+    ports:
+      - 8091:8080
+      - 9091:9090
+    deploy:
+      resources:
+        limits:
+          memory: 128m

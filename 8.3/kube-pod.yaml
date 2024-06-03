@@ -1,0 +1,79 @@
+# secret.yml
+apiVersion: v1
+data:
+  username: YWRtaW4=
+  password: MWYyZDFlMmU2N2Rm
+kind: Secret
+metadata:
+  name: webserver-secret
+type: Opaque
+---
+
+# pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webserver
+  labels:
+    name: webserver
+spec:
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '9090'
+  securityContext:
+    runAsUser: 82 #www-data
+    runAsGroup: 82 #www-data
+    fsGroup: 82 #www-data
+  containers:
+    - name: webserver
+      image: 8sistemas/laravel-alpine:8.3-mysql-nginx
+      imagePullPolicy: Always
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+      env:
+      - name: ENABLE_PROMETHEUS_EXPORTER_RUNNER
+        value: "1"
+      - name: ENV_VAR_FROM_POD
+        value: "test from pod"
+      - name: ENV_USERNAME_FROM_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: webserver-secret
+            key: username
+      - name: ENV_PASSWORD_FROM_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: webserver-secret
+            key: password
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+          add:
+            - setuid
+            - setgid
+        readOnlyRootFilesystem: true
+      ports:
+        - containerPort: 8080
+      volumeMounts:
+        - mountPath: /tmp
+          name: tmpfs-1
+        - mountPath: /run/nginx
+          name: tmpfs-2
+        - mountPath: /var/lib/nginx/tmp
+          name: tmpfs-3
+  volumes:
+    - name: tmpfs-1
+      emptyDir: {}
+    - name: tmpfs-2
+      emptyDir:
+        medium: "Memory"
+    - name: tmpfs-3
+      emptyDir: {}
