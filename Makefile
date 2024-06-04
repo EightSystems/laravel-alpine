@@ -10,10 +10,10 @@ help:
 	@echo "build-tag/TAGNAME"
 
 build:
-	@$(MAKE) build/7.4
 	@$(MAKE) build/8.0
 	@$(MAKE) build/8.1
 	@$(MAKE) build/8.2
+	@$(MAKE) build/8.3
 
 build/%:
 	@echo "Building for $*"
@@ -26,32 +26,32 @@ build/%:
 
 build-tag-mysql/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-mysql-alpine3.16 \
+	docker build -t 8sistemas/laravel-alpine:$*-mysql-alpine3.20 \
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=0" \
-		 -f ./Dockerfile .
+		 -f ./Dockerfile3.20 .
 
 build-tag-mysql-nginx/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-mysql-nginx-alpine3.16 \
+	docker build -t 8sistemas/laravel-alpine:$*-mysql-nginx-alpine3.20 \
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=1" \
-		 -f ./Dockerfile .
+		 -f ./Dockerfile3.20 .
 
 build-tag-pgsql/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-pgsql-alpine3.16 \
+	docker build -t 8sistemas/laravel-alpine:$*-pgsql-alpine3.20 \
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=0" \
-		 -f ./Dockerfile .
+		 -f ./Dockerfile3.20 .
 
 build-tag-pgsql-nginx/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-pgsql-nginx-alpine3.16 \
+	docker build -t 8sistemas/laravel-alpine:$*-pgsql-nginx-alpine3.20 \
 		--build-arg="PHP_VERSION=$*" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=1" \
-		 -f ./Dockerfile .
+		 -f ./Dockerfile3.20 .

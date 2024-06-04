@@ -23,7 +23,7 @@ RUN apk add --no-cache git gcc curl musl-dev && \
         GOOS=$TARGETOS GOARCH=$TARGETARCH \
             go build -tags release -a -ldflags "-linkmode external -extldflags -static" -o ${GOPATH}/bin/supervisord
 
-FROM golang:1.18-alpine3.16 AS build-exporter-merger
+FROM golang:1.19-alpine3.18 AS build-exporter-merger
 
 ARG TARGETOS TARGETARCH
 
