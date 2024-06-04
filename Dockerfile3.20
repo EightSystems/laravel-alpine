@@ -175,7 +175,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             if [ "$PHP_VERSION" == "7.4" ]; then \
                 pecl install xdebug-3.1.5; \
-            else pecl install xdebug-3.2.2; fi && \
+            else pecl install xdebug-3.3.2; fi && \
             docker-php-ext-enable xdebug; \
         fi && \
     # Add Prometheus Exporter
