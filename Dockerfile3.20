@@ -13,8 +13,8 @@ RUN apk add --no-cache git gcc curl musl-dev && \
     mkdir -p $GOPATH/src/github.com/google && \
     # Install Go Tools
     mkdir -p $GOPATH/src/golang.org/x && \
-        go install -v github.com/mitchellh/gox@latest && \
-        go install -v github.com/tcnksm/ghr@latest && \
+        go install -v github.com/mitchellh/gox@v1.0.1 && \
+        go install -v github.com/tcnksm/ghr@v0.16.2 && \
     # Clone and build exporter-merger
     git clone https://github.com/ochinchina/supervisord.git $GOPATH/src/supervisord && \
         cd $GOPATH/src/supervisord && \
