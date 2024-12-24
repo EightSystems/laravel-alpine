@@ -1,4 +1,3 @@
-version: "3"
 services:
   mysql:
     image: 8sistemas/laravel-alpine:8.1-mysql-alpine3.16
