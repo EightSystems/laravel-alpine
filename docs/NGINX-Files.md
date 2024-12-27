@@ -24,7 +24,7 @@ We have a snippet file in the `/etc/nginx/snippets/common-attacks-block.conf` pa
 In order to enable it you can use this sample Dockerfile
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.1-alpine3.16-mysql-nginx
+FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql-nginx
 USER root
 
 RUN ln -s /etc/nginx/snippets/common-attacks-block.conf /etc/nginx/conf.d/common-attacks-block.conf

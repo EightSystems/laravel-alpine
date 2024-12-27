@@ -14,6 +14,7 @@ build:
 	@$(MAKE) build/8.1
 	@$(MAKE) build/8.2
 	@$(MAKE) build/8.3
+	@$(MAKE) build/8.4
 
 build/%:
 	@echo "Building for $*"

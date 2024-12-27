@@ -5,8 +5,8 @@ FROM golang:1.18-alpine3.16 AS build-supervisord
 ARG TARGETOS TARGETARCH
 
 # Configure Go
-ENV GOPATH /go
-ENV PATH /go/bin:$PATH
+ENV GOPATH=/go
+ENV PATH="/go/bin:$PATH"
 
 RUN apk add --no-cache git gcc curl musl-dev && \
     mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
@@ -15,7 +15,7 @@ RUN apk add --no-cache git gcc curl musl-dev && \
     mkdir -p $GOPATH/src/golang.org/x && \
         go install -v github.com/mitchellh/gox@v1.0.1 && \
         go install -v github.com/tcnksm/ghr@v0.16.2 && \
-    # Clone and build exporter-merger
+    # Clone and build supervisor
     git clone https://github.com/ochinchina/supervisord.git $GOPATH/src/supervisord && \
         cd $GOPATH/src/supervisord && \
         git checkout c2cae38b7454d444f4cb8281d5367d50a55c0011 && \
@@ -23,33 +23,13 @@ RUN apk add --no-cache git gcc curl musl-dev && \
         GOOS=$TARGETOS GOARCH=$TARGETARCH \
             go build -tags release -a -ldflags "-linkmode external -extldflags -static" -o ${GOPATH}/bin/supervisord
 
-FROM golang:1.19-alpine3.18 AS build-exporter-merger
-
-ARG TARGETOS TARGETARCH
-
-# Configure Go
-ENV GOPATH /go
-ENV PATH /go/bin:$PATH
-ENV GO111MODULE=off
-RUN apk add --no-cache gcc git make && \
-    mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
-    # Install Go Tools
-    go get -u golang.org/x/lint/golint && \
-    go get -u github.com/golang/dep/cmd/dep && \
-    # Clone and build exporter-merger
-    git clone https://github.com/rebuy-de/exporter-merger.git /go/src/github.com/rebuy-de/exporter-merger/ && \
-        cd /go/src/github.com/rebuy-de/exporter-merger/ && \
-        git checkout v0.4.0 && \
-        GOOS=$TARGETOS GOARCH=$TARGETARCH \
-            make vendor && CGO_ENABLED=0 make install
-
 FROM php:${PHP_VERSION}-fpm-alpine3.20
 
 LABEL org.opencontainers.image.authors="Vin <vin@8sistemas.com>"
 
-ENV EXT_REDIS_VERSION=5.3.7
-ENV EXT_LIBEVENT_VERSION=3.0.6
-ENV EXT_MCRYPT_VERSION=1.0.5
+ENV EXT_REDIS_VERSION=6.1.0
+ENV EXT_LIBEVENT_VERSION=3.1.4
+ENV EXT_MCRYPT_VERSION=1.0.7
 ENV PS1="\[\033[01;32m\]\u@\h:\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 
 ARG TARGETARCH
@@ -134,7 +114,11 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         && mkdir -p /usr/src/php/ext/mcrypt \
         && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
         && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
-        && curl -fsSL https://pecl.php.net/get/mcrypt-$EXT_MCRYPT_VERSION.tgz | tar xvz -C /usr/src/php/ext/mcrypt --strip 1 \
+        && if [ "$PHP_VERSION" -lt "8.4" ]; then \
+            curl -fsSL https://pecl.php.net/get/mcrypt-$EXT_MCRYPT_VERSION.tgz | tar xvz -C /usr/src/php/ext/mcrypt --strip 1; \
+            MCRYPT_MODULE="mcrypt"; \
+        else MCRYPT_MODULE=""; \
+        fi \
         && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ --with-webp=/usr/include \
         && if [ "$DATABASE_MODULE" == "mysqli" ]; then \
             PDO_MODULE="pdo_mysql"; \
@@ -142,6 +126,8 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         fi \
         && if [ "$PHP_VERSION" == "7.4" ]; then \
             EXTRA_MODULES="json"; \
+        elif [ "$PHP_VERSION" == "8.3" -o "$PHP_VERSION" == "8.4" ]; then \
+            EXTRA_MODULES="ftp"; \
         else EXTRA_MODULES=""; \
         fi \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
@@ -161,21 +147,20 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
             gettext \
             mbstring \
             redis \
-            mcrypt \
+            ${MCRYPT_MODULE} \
             calendar \
             soap \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
-        if [ "$PHP_VERSION" == "8.3" ]; then \
-            mkdir -p /usr/src/php/ext/imagick && \
-            curl -fsSL https://github.com/Imagick/imagick/archive/28f27044e435a2b203e32675e942eb8de620ee58.tar.gz | tar xvz -C "/usr/src/php/ext/imagick" --strip 1 && \
-            docker-php-ext-install imagick; \
+        if [ "$PHP_VERSION" == "8.3" -o  "$PHP_VERSION" == "8.4" ]; then \
+            ( curl -sSLf https://github.com/mlocati/docker-php-extension-installer/releases/download/2.7.8/install-php-extensions -o - || echo 'return 1' ) | sh -s \
+                imagick; \
         else (printf "\n" | pecl install imagick) ; \
         fi && \
         docker-php-ext-enable imagick && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             if [ "$PHP_VERSION" == "7.4" ]; then \
                 pecl install xdebug-3.1.5; \
-            else pecl install xdebug-3.3.2; fi && \
+            else pecl install xdebug-3.4.0; fi && \
             docker-php-ext-enable xdebug; \
         fi && \
     # Add Prometheus Exporter
@@ -230,8 +215,6 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     # Clean Base
     rm -rf /tmp/base
 
-# Add Prometheus Exporter
-COPY --from=build-exporter-merger /go/bin/exporter-merger /usr/bin/exporter-merger
 # Add Supervisord
 COPY --from=build-supervisord /go/bin/supervisord /usr/bin/supervisord
 

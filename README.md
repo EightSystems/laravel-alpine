@@ -17,7 +17,7 @@ You can either pull it from ghcr (Github Container Registry) or DockerHub Regist
 
 You can use any of the versions-tag bellow in the following form:
 
-`version-tag` as in: `8.1-alpine3.16-mysql-nginx`
+`version-tag` as in: `8.4-alpine3.20-mysql-nginx`
 
 | Version        | Tags                                                                                                       | Notes       |
 | -------------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
@@ -26,6 +26,7 @@ You can use any of the versions-tag bellow in the following form:
 | 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
 | 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
 | 8.3-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
+| 8.4-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
 
 ## Pull it from Docker Registry
 
@@ -52,10 +53,9 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.3-alpine3.20-mysql "com
 - ARM64 version
 - Nginx "modular" config. See [NGINX-Files.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/NGINX-Files.md)
 - Prometheus exporter for both PHP and NGINX (if you enable it setting the env variable `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`). See [Prometheus-Scrapper.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Prometheus-Scrapper.md)
-  - We use a merge metrics exporter so you get both nginx and php-fpm metrics in a single query
+  - We have the php-fpm_exporter running by default at 9090, and the nginx prometheus exporter at 9190.
     - nginx-prometheus-exporter:0.10
     - php-fpm_exporter:2.0.4
-    - exporter-merger:0.4.0
 - Secrets Manager Environment Expander
   - See [Secrets-Environment-Expander.md](https://github.com/EightSystems/laravel-alpine/blob/master/docs/Secrets-Environment-Expander.md)
 - Changing users/group UID and GID
@@ -70,8 +70,8 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.3-alpine3.20-mysql "com
   - 8.1-alpine3.16-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
     - This allows you to run your container with as little of 128MB of RAM still giving some room for your application.
 - Readonly filesystem support (with some paths needed being tmpfs)
-  - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/docker-compose.yaml)
-  - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.1/kube-pod.yaml)
+  - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.4/docker-compose.yaml)
+  - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.4/kube-pod.yaml)
 
 ## Other Details
 
@@ -109,7 +109,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - opcache
 - gettext
 - mbstring
-- mcrypt
+- mcrypt (< 8.4)
 - gd (with jpeg, png, freetype, gif, and webp support)
 - XDebug (with the `-xdebug` tags)
 
@@ -118,7 +118,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.3-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
 USER root
 RUN docker-php-ext-install memcached
 USER www-data
@@ -127,7 +127,7 @@ USER www-data
 ## Adding custom CRON
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.3-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
 RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
 
@@ -152,7 +152,7 @@ stdout_logfile_maxbytes=0
 On your Docker image
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.3-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
 USER root
 ADD horizon.ini /etc/supervisor.d/
 USER www-data

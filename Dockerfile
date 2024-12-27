@@ -15,33 +15,13 @@ RUN apk add --no-cache git gcc curl musl-dev && \
     mkdir -p $GOPATH/src/golang.org/x && \
         go install -v github.com/mitchellh/gox@v1.0.1 && \
         go install -v github.com/tcnksm/ghr@v0.16.2 && \
-    # Clone and build exporter-merger
+    # Clone and build supervisor
     git clone https://github.com/ochinchina/supervisord.git $GOPATH/src/supervisord && \
         cd $GOPATH/src/supervisord && \
         git checkout c2cae38b7454d444f4cb8281d5367d50a55c0011 && \
         go generate && \
         GOOS=$TARGETOS GOARCH=$TARGETARCH \
             go build -tags release -a -ldflags "-linkmode external -extldflags -static" -o ${GOPATH}/bin/supervisord
-
-FROM golang:1.19-alpine3.18 AS build-exporter-merger
-
-ARG TARGETOS TARGETARCH
-
-# Configure Go
-ENV GOPATH /go
-ENV PATH /go/bin:$PATH
-ENV GO111MODULE=off
-RUN apk add --no-cache gcc git make && \
-    mkdir -p ${GOPATH}/src ${GOPATH}/bin && \
-    # Install Go Tools
-    go get -u golang.org/x/lint/golint && \
-    go get -u github.com/golang/dep/cmd/dep && \
-    # Clone and build exporter-merger
-    git clone https://github.com/rebuy-de/exporter-merger.git /go/src/github.com/rebuy-de/exporter-merger/ && \
-        cd /go/src/github.com/rebuy-de/exporter-merger/ && \
-        git checkout v0.4.0 && \
-        GOOS=$TARGETOS GOARCH=$TARGETARCH \
-            make vendor && CGO_ENABLED=0 make install
 
 FROM php:${PHP_VERSION}-fpm-alpine3.16
 
@@ -225,8 +205,6 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     # Clean Base
     rm -rf /tmp/base
 
-# Add Prometheus Exporter
-COPY --from=build-exporter-merger /go/bin/exporter-merger /usr/bin/exporter-merger
 # Add Supervisord
 COPY --from=build-supervisord /go/bin/supervisord /usr/bin/supervisord
 
