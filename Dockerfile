@@ -107,7 +107,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     # Add Prometheus Exporter
     (curl -fsSL https://github.com/hipages/php-fpm_exporter/releases/download/v2.2.0/php-fpm_exporter_2.2.0_linux_$TARGETARCH > /usr/bin/php-fpm-exporter) && \
     # Add Composer
-    (curl -fsSL https://github.com/composer/composer/releases/download/2.5.8/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
+    (curl -fsSL https://github.com/composer/composer/releases/download/2.8.4/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
     # Configure & Install Extension
     mkdir -p /usr/src/php/ext/redis \
         && mkdir -p /usr/src/php/ext/event \
