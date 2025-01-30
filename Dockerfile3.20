@@ -27,7 +27,7 @@ FROM php:${PHP_VERSION}-fpm-alpine3.20
 
 LABEL org.opencontainers.image.authors="Vin <vin@8sistemas.com>"
 
-ENV EXT_REDIS_VERSION=6.1.0
+ENV EXT_REDIS_VERSION=5.3.7
 ENV EXT_LIBEVENT_VERSION=3.1.4
 ENV EXT_MCRYPT_VERSION=1.0.7
 ENV PS1="\[\033[01;32m\]\u@\h:\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
