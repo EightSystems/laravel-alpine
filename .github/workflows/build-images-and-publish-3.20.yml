@@ -156,6 +156,8 @@ jobs:
             HAS_NGINX=${{ matrix.variant.has_nginx }}
 
   link-container-tags:
+    runs-on: ubuntu-24.04
+    name: Link Container tags
     strategy:
       fail-fast: false
       max-parallel: 4
