@@ -199,7 +199,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create and push manifest (ghcr.io)
-        id: manifest-latest
         uses: Noelware/docker-manifest-action@dabcf08de909963ac0db0d79554efe7366dc3664
         with:
           base-image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}
@@ -209,7 +208,6 @@ jobs:
           push: true
 
       - name: Create and push manifest (docker hub)
-        id: manifest-latest
         uses: Noelware/docker-manifest-action@dabcf08de909963ac0db0d79554efe7366dc3664
         with:
           base-image: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}
@@ -219,7 +217,6 @@ jobs:
           push: true
 
       - name: Create and push manifest (ghcr.io) (with XDebug)
-        id: manifest-latest
         uses: Noelware/docker-manifest-action@dabcf08de909963ac0db0d79554efe7366dc3664
         with:
           base-image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}-xdebug
@@ -229,7 +226,6 @@ jobs:
           push: true
 
       - name: Create and push manifest (docker hub) (with XDebug)
-        id: manifest-latest
         uses: Noelware/docker-manifest-action@dabcf08de909963ac0db0d79554efe7366dc3664
         with:
           base-image: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}-xdebug
