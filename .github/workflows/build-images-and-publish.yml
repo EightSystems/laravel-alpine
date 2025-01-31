@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
+    paths:
+      - '8.2/**'
+      - 'Dockerfile'
+      - '.github/workflows/build-images-and-publish.yml'
   schedule:
     - cron: "0 0 1,15 * *"
 env:
