@@ -85,7 +85,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         freetype-dev \
         libzip-dev \
         libevent-dev openssl-dev libmcrypt-dev \
-        libxml2-dev imagemagick-dev libtool $PHPIZE_DEPS \
+        libxml2-dev imagemagick-dev libtool gmp-dev $PHPIZE_DEPS \
     # Add Production Dependencies
     && apk add --update --no-cache \
         jpegoptim \
@@ -97,7 +97,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         ${DEPS_NAME} \
         zip libzip libevent openssl git libwebp libintl \
         oniguruma tini bash less libmcrypt sudo shadow \
-        libxml2 imagemagick \
+        libxml2 imagemagick gmp \
     # Add nginx or not
     && if [ "$HAS_NGINX" == "1" ] ; then \
         apk add --no-cache nginx \
@@ -144,6 +144,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
             mcrypt \
             calendar \
             soap \
+            gmp \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
         (printf "\n" | pecl install imagick) && \
         docker-php-ext-enable imagick && \

@@ -103,6 +103,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - calendar
 - imagick
 - soap
+- gmp
 
 ### Small additions
 
