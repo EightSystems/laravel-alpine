@@ -158,10 +158,12 @@ RUN function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
         if [ "$PHP_VERSION" == "8.3" -o  "$PHP_VERSION" == "8.4" ]; then \
             ( curl -sSLf https://github.com/mlocati/docker-php-extension-installer/releases/download/2.7.8/install-php-extensions -o - || echo 'return 1' ) | sh -s \
-                imagick; \
-        else (printf "\n" | pecl install imagick) ; \
+                imagick opentelemetry-stable; \
+        else (printf "\n" | pecl install imagick opentelemetry) ; \
         fi && \
         docker-php-ext-enable imagick && \
+        # We disable OpenTelemetry here so people can enable them as they choose to.
+        rm -f /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             if [ "$PHP_VERSION" == "7.4" ]; then \
                 pecl install xdebug-3.1.5; \

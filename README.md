@@ -113,6 +113,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 - mcrypt (< 8.4)
 - gd (with jpeg, png, freetype, gif, and webp support)
 - XDebug (with the `-xdebug` tags)
+- opentelemetry (you need to enable it with `docker-php-ext-enable opentelemetry` in your Dockerfile)
 
 ## Adding other PHP Extension
 

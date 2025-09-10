@@ -146,8 +146,10 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
             soap \
             gmp \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
-        (printf "\n" | pecl install imagick) && \
+        (printf "\n" | pecl install imagick opentelemetry) && \
         docker-php-ext-enable imagick && \
+        # We disable OpenTelemetry here so people can enable them as they choose to.
+        rm -f /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
             if [ "$PHP_VERSION" == "7.4" ]; then \
                 pecl install xdebug-3.1.5; \
