@@ -17,7 +17,7 @@ You can either pull it from ghcr (Github Container Registry) or DockerHub Regist
 
 You can use any of the versions-tag bellow in the following form:
 
-`version-tag` as in: `8.4-alpine3.20-mysql-nginx`
+`version-tag` as in: `8.5-alpine3.23-mysql-nginx`
 
 | Version        | Tags                                                                                                       | Notes       |
 | -------------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
@@ -27,13 +27,14 @@ You can use any of the versions-tag bellow in the following form:
 | 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
 | 8.3-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
 | 8.4-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
+| 8.5-alpine3.23 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.23 |
 
 ## Pull it from Docker Registry
 
 To pull the docker image:
 
 ```bash
-docker pull 8sistemas/laravel-alpine:8.3-alpine3.20-mysql
+docker pull 8sistemas/laravel-alpine:8.5-alpine3.23-mysql
 ```
 
 ## Usage
@@ -41,7 +42,7 @@ docker pull 8sistemas/laravel-alpine:8.3-alpine3.20-mysql
 To run from current dir
 
 ```bash
-docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.3-alpine3.20-mysql "composer install --prefer-dist"
+docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.5-alpine3.23-mysql "composer install --prefer-dist"
 ```
 
 ## What's Included
@@ -75,7 +76,7 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.3-alpine3.20-mysql "com
 
 ## Other Details
 
-- Alpine base image 3.16 and 3.20
+- Alpine base image 3.16, 3.20 and 3.23
 - Uses DockerHub php base image
 - Security Scan enabled on a biweekly basis (using Anchore)
 - Supervisor has `supervisorctl` support enabled on all tags
@@ -107,7 +108,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 
 ### Small additions
 
-- opcache
+- opcache (builtin in PHP 8.5+)
 - gettext
 - mbstring
 - mcrypt (< 8.4)
@@ -120,7 +121,7 @@ These extensions are the basics (and some small additions) needed to run Laravel
 You can add additional PHP Extensions by running `docker-ext-install` command. Don't forget to install necessary dependencies for required extension.
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.5-alpine3.23-mysql
 USER root
 RUN docker-php-ext-install memcached
 USER www-data
@@ -129,7 +130,7 @@ USER www-data
 ## Adding custom CRON
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.5-alpine3.23-mysql
 RUN echo '* * * * * /usr/local/bin/php  /var/www/artisan another:command >> /dev/null 2>&1' >> /etc/crontabs/www-data
 ```
 
@@ -154,7 +155,7 @@ stdout_logfile_maxbytes=0
 On your Docker image
 
 ```Dockerfile
-FROM 8sistemas/laravel-alpine:8.4-alpine3.20-mysql
+FROM 8sistemas/laravel-alpine:8.5-alpine3.23-mysql
 USER root
 ADD horizon.ini /etc/supervisor.d/
 USER www-data
