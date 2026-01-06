@@ -15,44 +15,63 @@ build:
 	@$(MAKE) build/8.2
 	@$(MAKE) build/8.3
 	@$(MAKE) build/8.4
+	@$(MAKE) build-3.23/8.5
 
 build/%:
 	@echo "Building for $*"
 	@- if ! test -e $*; then echo "No such version"; exit 1; fi
 
-	@$(MAKE) build-tag-mysql/$*
-	@$(MAKE) build-tag-mysql-nginx/$*
-	@$(MAKE) build-tag-pgsql/$*
-	@$(MAKE) build-tag-pgsql-nginx/$*
+	@$(MAKE) build-tag-mysql/3.20/$*
+	@$(MAKE) build-tag-mysql-nginx/3.20/$*
+	@$(MAKE) build-tag-pgsql/3.20/$*
+	@$(MAKE) build-tag-pgsql-nginx/3.20/$*
+
+build-3.23/%:
+	@echo "Building for $*"
+	@- if ! test -e $*; then echo "No such version"; exit 1; fi
+
+	@$(MAKE) build-tag-mysql/3.23/$*
+	@$(MAKE) build-tag-mysql-nginx/3.23/$*
+	@$(MAKE) build-tag-pgsql/3.23/$*
+	@$(MAKE) build-tag-pgsql-nginx/3.23/$*
 
 build-tag-mysql/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-mysql-alpine3.20 \
-		--build-arg="PHP_VERSION=$*" \
+	# Expected $* format: <alpine>/<php>
+	@ALPINE_VERSION=$$(echo $* | cut -d/ -f1); \
+	PHP_VERSION=$$(echo $* | cut -d/ -f2); \
+	docker build -t 8sistemas/laravel-alpine:$$PHP_VERSION-mysql-alpine$$ALPINE_VERSION \
+		--build-arg="PHP_VERSION=$$PHP_VERSION" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=0" \
-		 -f ./Dockerfile3.20 .
+		-f ./Dockerfile$$ALPINE_VERSION .
 
 build-tag-mysql-nginx/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-mysql-nginx-alpine3.20 \
-		--build-arg="PHP_VERSION=$*" \
+	@ALPINE_VERSION=$$(echo $* | cut -d/ -f1); \
+	PHP_VERSION=$$(echo $* | cut -d/ -f2); \
+	docker build -t 8sistemas/laravel-alpine:$$PHP_VERSION-mysql-nginx-alpine$$ALPINE_VERSION \
+		--build-arg="PHP_VERSION=$$PHP_VERSION" \
 		--build-arg="DATABASE_MODULE=mysqli" \
 		--build-arg="HAS_NGINX=1" \
-		 -f ./Dockerfile3.20 .
+		-f ./Dockerfile$$ALPINE_VERSION .
 
 build-tag-pgsql/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-pgsql-alpine3.20 \
-		--build-arg="PHP_VERSION=$*" \
+	@ALPINE_VERSION=$$(echo $* | cut -d/ -f1); \
+	PHP_VERSION=$$(echo $* | cut -d/ -f2); \
+	docker build -t 8sistemas/laravel-alpine:$$PHP_VERSION-pgsql-alpine$$ALPINE_VERSION \
+		--build-arg="PHP_VERSION=$$PHP_VERSION" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=0" \
-		 -f ./Dockerfile3.20 .
+		-f ./Dockerfile$$ALPINE_VERSION .
 
 build-tag-pgsql-nginx/%:
 	@echo "Building for $*"
-	docker build -t 8sistemas/laravel-alpine:$*-pgsql-nginx-alpine3.20 \
-		--build-arg="PHP_VERSION=$*" \
+	@ALPINE_VERSION=$$(echo $* | cut -d/ -f1); \
+	PHP_VERSION=$$(echo $* | cut -d/ -f2); \
+	docker build -t 8sistemas/laravel-alpine:$$PHP_VERSION-pgsql-nginx-alpine$$ALPINE_VERSION \
+		--build-arg="PHP_VERSION=$$PHP_VERSION" \
 		--build-arg="DATABASE_MODULE=pgsql" \
 		--build-arg="HAS_NGINX=1" \
-		 -f ./Dockerfile3.20 .
+		-f ./Dockerfile$$ALPINE_VERSION .
