@@ -67,8 +67,8 @@ RUN function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$
         DEV_DEPS_NAME="mariadb-connector-c-dev"; \
         DEPS_NAME="mariadb-connector-c mariadb-client"; \
     else \
-        DEV_DEPS_NAME="postgresql-dev"; \
-        DEPS_NAME="libpq postgresql14-client"; \
+        DEV_DEPS_NAME="postgresql16-dev"; \
+        DEPS_NAME="libpq postgresql16-client"; \
     fi && \
     apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
         zlib-dev \
