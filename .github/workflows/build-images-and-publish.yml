@@ -107,7 +107,7 @@ jobs:
             HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         continue-on-error: true
         with:
           image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}"

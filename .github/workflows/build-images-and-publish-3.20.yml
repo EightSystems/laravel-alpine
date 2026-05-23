@@ -56,30 +56,30 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},${{ env.DOCKER_IMAGE_NAME }}
 
       - name: Build and export Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
@@ -102,7 +102,7 @@ jobs:
           docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}-test-${{ matrix.job.name }} php -m
 
       - name: Build Docker image and Push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./
           file: ./Dockerfile3.20
@@ -121,7 +121,7 @@ jobs:
             HAS_NGINX=${{ matrix.variant.has_nginx }}
 
       - name: Build and export Docker image (with Xdebug)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
@@ -142,7 +142,7 @@ jobs:
           docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }} php -m
 
       - name: Build and push Docker image (with Xdebug)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
@@ -190,13 +190,13 @@ jobs:
     steps:
       - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -239,14 +239,14 @@ jobs:
           push: true
 
       - name: Run Security Scan against ${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         continue-on-error: true
         with:
           image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}"
           fail-build: false
 
       - name: Upload Scan Report for ${{ matrix.php }}-alpine3.20-${{ matrix.variant.tag }}
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         continue-on-error: true
         with:
           sarif_file: results.sarif
