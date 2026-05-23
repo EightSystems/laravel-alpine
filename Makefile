@@ -10,12 +10,19 @@ help:
 	@echo "build-tag/TAGNAME"
 
 build:
-	@$(MAKE) build/8.0
-	@$(MAKE) build/8.1
-	@$(MAKE) build/8.2
+	@$(MAKE) build-3.16/8.2
 	@$(MAKE) build/8.3
 	@$(MAKE) build/8.4
 	@$(MAKE) build-3.23/8.5
+
+build-3.16/%:
+	@echo "Building for $*"
+	@- if ! test -e $*; then echo "No such version"; exit 1; fi
+
+	@$(MAKE) build-tag-mysql/3.16/$*
+	@$(MAKE) build-tag-mysql-nginx/3.16/$*
+	@$(MAKE) build-tag-pgsql/3.16/$*
+	@$(MAKE) build-tag-pgsql-nginx/3.16/$*
 
 build/%:
 	@echo "Building for $*"
