@@ -1,12 +1,12 @@
-name: Build PHP Images
+name: Build PHP Images (Alpine 3.16)
 on:
   workflow_dispatch:
   push:
     branches: [master]
     paths:
-      - '8.2/**'
-      - 'Dockerfile3.16'
-      - '.github/workflows/build-images-and-publish.yml'
+      - "8.2/**"
+      - "Dockerfile3.16"
+      - ".github/workflows/build-images-and-publish.yml"
   schedule:
     - cron: "0 0 1,15 * *"
 env:
@@ -15,12 +15,16 @@ env:
   DOCKER_IMAGE_NAME: 8sistemas/laravel-alpine
 jobs:
   build-images:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.job.os }}
+    name: PHP ${{ matrix.php }} ${{ matrix.variant.tag }} [${{ matrix.job.name }}]
     if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
     strategy:
       fail-fast: false
-      max-parallel: 12
+      max-parallel: 8
       matrix:
+        job:
+          - { name: amd64, os: ubuntu-24.04 }
+          - { name: arm64, os: ubuntu-24.04-arm }
         php: ["8.2"]
         variant:
           [
@@ -43,32 +47,30 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
       - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},${{ env.DOCKER_IMAGE_NAME }}
 
       - name: Build and export Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
@@ -76,8 +78,10 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
           build-args: |
             BUILD_XDEBUG=0
             PHP_VERSION=${{ matrix.php }}
@@ -87,18 +91,20 @@ jobs:
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test-${{ matrix.job.name }} php -m
 
       - name: Build Docker image and Push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         with:
           context: ./
           file: ./Dockerfile3.16
           push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }},${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
+          provenance: mode=max
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-${{ matrix.job.name }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_XDEBUG=0
@@ -106,22 +112,17 @@ jobs:
             DATABASE_MODULE=${{ matrix.variant.database_module }}
             HAS_NGINX=${{ matrix.variant.has_nginx }}
 
-      - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
-        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
-        continue-on-error: true
-        with:
-          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}"
-          fail-build: false
-
       - name: Build and export Docker image (with Xdebug)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
           file: ./Dockerfile3.16
           load: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
           build-args: |
             BUILD_XDEBUG=1
             PHP_VERSION=${{ matrix.php }}
@@ -131,26 +132,109 @@ jobs:
       - name: Test Image with PHP modules list
         if: github.event_name != 'pull_request'
         run: |
-          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test php -m
+          docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }} php -m
 
       - name: Build and push Docker image (with Xdebug)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         if: github.event_name != 'pull_request'
         with:
           context: ./
           file: ./Dockerfile3.16
           push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug,${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-${{ matrix.job.name }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
           build-args: |
             BUILD_XDEBUG=1
             PHP_VERSION=${{ matrix.php }}
             DATABASE_MODULE=${{ matrix.variant.database_module }}
             HAS_NGINX=${{ matrix.variant.has_nginx }}
 
-      - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
-        uses: github/codeql-action/upload-sarif@v2
+  link-container-tags:
+    runs-on: ubuntu-24.04
+    name: Link Container tags
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        php: ["8.2"]
+        variant:
+          [
+            { "tag": "mysql", "has_nginx": 0, "database_module": "mysqli" },
+            {
+              "tag": "mysql-nginx",
+              "has_nginx": 1,
+              "database_module": "mysqli",
+            },
+            {
+              "tag": "pgsql-nginx",
+              "has_nginx": 1,
+              "database_module": "pgsql",
+            },
+            { "tag": "pgsql", "has_nginx": 0, "database_module": "pgsql" },
+          ]
+    needs: build-images
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Log into Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifest (ghcr.io)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-arm64
+
+      - name: Create and push manifest (docker hub)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }} \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-amd64 \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-arm64
+
+      - name: Create and push manifest (ghcr.io) (with XDebug)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-arm64
+
+      - name: Create and push manifest (docker hub) (with XDebug)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-amd64 \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-arm64
+
+      - name: Run Security Scan against ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        id: scan
         continue-on-error: true
         with:
-          sarif_file: results.sarif
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}"
+          fail-build: false
+          severity-cutoff: critical
+
+      - name: Upload Scan Report for ${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
