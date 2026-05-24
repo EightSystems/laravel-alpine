@@ -80,8 +80,6 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-test-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=max
-          sbom: true
           build-args: |
             BUILD_XDEBUG=0
             PHP_VERSION=${{ matrix.php }}
@@ -102,6 +100,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: mode=max
+          sbom: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-${{ matrix.job.name }}
             ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-${{ matrix.job.name }}
@@ -121,8 +120,6 @@ jobs:
           load: true
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php }}-alpine3.16-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=max
-          sbom: true
           build-args: |
             BUILD_XDEBUG=1
             PHP_VERSION=${{ matrix.php }}
