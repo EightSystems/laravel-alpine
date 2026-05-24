@@ -29,6 +29,8 @@ You can use any of the versions-tag bellow in the following form:
 | 8.4-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
 | 8.5-alpine3.23 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.23 |
 
+> **Security Notice:** Versions below PHP 8.4 (Alpine 3.16 & 3.20 images) are maintained as-is. They may contain software with known CVEs that will not be patched if upstream maintainers do not backport fixes. The best way to stay protected is to always use the latest PHP version, which always follows the latest Alpine release.
+
 ## Pull it from Docker Registry
 
 To pull the docker image:
