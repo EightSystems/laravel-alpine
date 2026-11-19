@@ -35,8 +35,8 @@ jobs:
               pretty-name: Build and push arm64 image,
             }
         php:
-          - { "version": "8.4", "full_version": "8.4.27" }
-          - { "version": "8.5", "full_version": "8.5.12" }
+          - { "version": "8.4", "full_version": "8.4" }
+          - { "version": "8.5", "full_version": "8.5" }
         variant:
           [
             { "tag": "mysql", "has_nginx": 0, "database_module": "mysqli" },
