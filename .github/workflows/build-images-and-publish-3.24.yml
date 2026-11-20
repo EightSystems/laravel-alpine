@@ -1,0 +1,296 @@
+name: Build PHP Images (Alpine 3.24)
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "8.6/**"
+      - "8.5/**"
+      - "Dockerfile3.24"
+      - ".github/workflows/build-images-and-publish-3.24.yml"
+  schedule:
+    - cron: "0 0 1,15 * *"
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: eightsystems/laravel-alpine
+  DOCKER_IMAGE_NAME: 8sistemas/laravel-alpine
+jobs:
+  build-images:
+    runs-on: ${{ matrix.job.os }}
+    name: PHP ${{ matrix.php.version }} ${{ matrix.variant.tag }} [${{ matrix.job.name }}]
+    if: (!contains(github.event.head_commit.message, '[skipci]') && !contains(github.event.head_commit.message, '[noci]'))
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        job:
+          - {
+              name: amd64,
+              os: ubuntu-24.04,
+              pretty-name: Build and push amd64 image,
+            }
+          - {
+              name: arm64,
+              os: ubuntu-24.04-arm,
+              pretty-name: Build and push arm64 image,
+            }
+        php:
+          - { "version": "8.5", "full_version": "8.5" }
+          - { "version": "8.6", "full_version": "8.6" }
+        variant:
+          [
+            { "tag": "mysql", "has_nginx": 0, "database_module": "mysqli" },
+            {
+              "tag": "mysql-nginx",
+              "has_nginx": 1,
+              "database_module": "mysqli",
+            },
+            {
+              "tag": "pgsql-nginx",
+              "has_nginx": 1,
+              "database_module": "pgsql",
+            },
+            { "tag": "pgsql", "has_nginx": 0, "database_module": "pgsql" },
+          ]
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log into Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},${{ env.DOCKER_IMAGE_NAME }}
+
+      - name: Build and export Docker image
+        uses: docker/build-push-action@v7
+        if: github.event_name != 'pull_request'
+        with:
+          context: ./
+          file: ./Dockerfile3.24
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-test-${{ matrix.job.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_XDEBUG=0
+            PHP_VERSION=${{ matrix.php.version }}
+            PHP_FULL_VERSION=${{ matrix.php.full_version }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
+
+      - name: Smoke test image
+        if: github.event_name != 'pull_request'
+        run: |
+          docker run --rm \
+            -v "$PWD/tests/ci/image-smoke-test.sh:/smoke-test.sh:ro" \
+            -e PHP_VERSION="${{ matrix.php.version }}" \
+            -e DATABASE_MODULE="${{ matrix.variant.database_module }}" \
+            -e HAS_NGINX="${{ matrix.variant.has_nginx }}" \
+            -e BUILD_XDEBUG=0 \
+            -e ALPINE_VERSION=3.24 \
+            --entrypoint sh \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-test-${{ matrix.job.name }} \
+            /smoke-test.sh
+
+      - name: Build Docker image and Push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./
+          file: ./Dockerfile3.24
+          push: ${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-${{ matrix.job.name }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-${{ matrix.job.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_XDEBUG=0
+            PHP_VERSION=${{ matrix.php.version }}
+            PHP_FULL_VERSION=${{ matrix.php.full_version }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
+
+      - name: Build and export Docker image (with Xdebug)
+        uses: docker/build-push-action@v7
+        if: github.event_name != 'pull_request'
+        with:
+          context: ./
+          file: ./Dockerfile3.24
+          load: true
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_XDEBUG=1
+            PHP_VERSION=${{ matrix.php.version }}
+            PHP_FULL_VERSION=${{ matrix.php.full_version }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
+
+      - name: Smoke test image (Xdebug)
+        if: github.event_name != 'pull_request'
+        run: |
+          docker run --rm \
+            -v "$PWD/tests/ci/image-smoke-test.sh:/smoke-test.sh:ro" \
+            -e PHP_VERSION="${{ matrix.php.version }}" \
+            -e DATABASE_MODULE="${{ matrix.variant.database_module }}" \
+            -e HAS_NGINX="${{ matrix.variant.has_nginx }}" \
+            -e BUILD_XDEBUG=1 \
+            -e ALPINE_VERSION=3.24 \
+            --entrypoint sh \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-test-${{ matrix.job.name }} \
+            /smoke-test.sh
+
+      - name: Build and push Docker image (with Xdebug)
+        uses: docker/build-push-action@v7
+        if: github.event_name != 'pull_request'
+        with:
+          context: ./
+          file: ./Dockerfile3.24
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-${{ matrix.job.name }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-${{ matrix.job.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          build-args: |
+            BUILD_XDEBUG=1
+            PHP_VERSION=${{ matrix.php.version }}
+            PHP_FULL_VERSION=${{ matrix.php.full_version }}
+            DATABASE_MODULE=${{ matrix.variant.database_module }}
+            HAS_NGINX=${{ matrix.variant.has_nginx }}
+
+  link-container-tags:
+    runs-on: ubuntu-24.04
+    name: Link Container tags
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        php:
+          - { "version": "8.5", "full_version": "8.5" }
+          - { "version": "8.6", "full_version": "8.6" }
+        variant:
+          [
+            { "tag": "mysql", "has_nginx": 0, "database_module": "mysqli" },
+            {
+              "tag": "mysql-nginx",
+              "has_nginx": 1,
+              "database_module": "mysqli",
+            },
+            {
+              "tag": "pgsql-nginx",
+              "has_nginx": 1,
+              "database_module": "pgsql",
+            },
+            { "tag": "pgsql", "has_nginx": 0, "database_module": "pgsql" },
+          ]
+    needs: build-images
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Log into Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifest (ghcr.io)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-arm64
+
+      - name: Create and push manifest (docker hub)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }} \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-amd64 \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-arm64
+
+      - name: Create and push manifest (ghcr.io) (with XDebug)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-arm64
+
+      - name: Create and push manifest (docker hub) (with XDebug)
+        run: |
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-amd64 \
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}-xdebug-arm64
+
+      - name: Run Security Scan against ${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        id: scan
+        continue-on-error: true
+        with:
+          image: "ghcr.io/eightsystems/laravel-alpine:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}"
+          fail-build: false
+          severity-cutoff: critical
+
+      - name: Upload Scan Report for ${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+      - name: Trivy scan (report) for ${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}"
+          format: sarif
+          output: trivy-results.sarif
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: "0"
+
+      - name: Trivy gate (CRITICAL/HIGH) for ${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}"
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload Trivy report for ${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        continue-on-error: true
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-${{ matrix.php.version }}-alpine3.24-${{ matrix.variant.tag }}

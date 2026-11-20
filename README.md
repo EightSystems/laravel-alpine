@@ -17,19 +17,17 @@ You can either pull it from ghcr (Github Container Registry) or DockerHub Regist
 
 You can use any of the versions-tag bellow in the following form:
 
-`version-tag` as in: `8.5-alpine3.23-mysql-nginx`
+`version-tag` as in: `8.6-alpine3.24-mysql-nginx`
 
 | Version        | Tags                                                                                                       | Notes       |
 | -------------- | ---------------------------------------------------------------------------------------------------------- | ----------- |
-| 7.4-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
-| 8.0-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
-| 8.1-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
-| 8.2-alpine3.16 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.16 |
 | 8.3-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
 | 8.4-alpine3.20 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.20 |
 | 8.5-alpine3.23 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.23 |
+| 8.5-alpine3.24 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.24 |
+| 8.6-alpine3.24 | mysql, mysql-nginx, pgsql, pgsql-nginx, mysql-xdebug, mysql-nginx-xdebug, pgsql-xdebug, pgsql-nginx-xdebug | Alpine 3.24 |
 
-> **Security Notice:** Versions below PHP 8.4 (Alpine 3.16 & 3.20 images) are maintained as-is. They may contain software with known CVEs that will not be patched if upstream maintainers do not backport fixes. The best way to stay protected is to always use the latest PHP version, which always follows the latest Alpine release.
+> **Security Notice:** Versions below PHP 8.4 (Alpine 3.20 images) are maintained as-is. They may contain software with known CVEs that will not be patched if upstream maintainers do not backport fixes. The best way to stay protected is to always use the latest PHP version, which always follows the latest Alpine release.
 
 ## Pull it from Docker Registry
 
@@ -70,15 +68,14 @@ docker run -v $(pwd):/var/www 8sistemas/laravel-alpine:8.5-alpine3.23-mysql "com
   - See [opcache.ini](https://github.com/EightSystems/laravel-alpine/blob/master/base/core/opcache.ini)
 - Able to run with drop all privileges running as `www-data` (linux uid 82, gid 82) user
 - Small memory footprint
-  - 8.1-alpine3.16-mysql-nginx with Prometheus Exporter enabled uses ~65MB of RAM when idle
-    - This allows you to run your container with as little of 128MB of RAM still giving some room for your application.
+  - This allows you to run your container with as little of 128MB of RAM still giving some room for your application.
 - Readonly filesystem support (with some paths needed being tmpfs)
   - [Sample Docker-compose file](https://github.com/EightSystems/laravel-alpine/blob/master/8.4/docker-compose.yaml)
   - [Sample Kubernetes POD Yaml](https://github.com/EightSystems/laravel-alpine/blob/master/8.4/kube-pod.yaml)
 
 ## Other Details
 
-- Alpine base image 3.16, 3.20 and 3.23
+- Alpine base image 3.20, 3.23 and 3.24
 - Uses DockerHub php base image
 - Security Scan enabled on a biweekly basis (using Anchore)
 - Supervisor has `supervisorctl` support enabled on all tags

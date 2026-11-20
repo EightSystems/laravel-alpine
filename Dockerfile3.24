@@ -1,4 +1,7 @@
-ARG PHP_VERSION=7.4
+# syntax=docker/dockerfile:1.7
+
+ARG PHP_VERSION=8.6
+ARG PHP_FULL_VERSION=${PHP_VERSION}
 
 FROM golang:1.27-alpine3.24 AS build-supervisord
 
@@ -54,19 +57,18 @@ RUN apk add --no-cache git && \
         go build -trimpath -ldflags "-s -w -X github.com/prometheus/common/version.Version=1.5.3" \
         -o /go/bin/nginx-prometheus-exporter .
 
-FROM php:${PHP_VERSION}-fpm-alpine3.16
+FROM php:${PHP_FULL_VERSION}-fpm-alpine3.24
 
 LABEL org.opencontainers.image.authors="Vin <vin@8sistemas.com>"
 
-ENV EXT_REDIS_VERSION=5.3.7
-ENV EXT_LIBEVENT_VERSION=3.0.6
-ENV EXT_MCRYPT_VERSION=1.0.5
+ENV EXT_LIBEVENT_VERSION=3.2.0
+ENV EXT_MCRYPT_VERSION=1.0.9
 ENV PS1="\[\033[01;32m\]\u@\h:\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 
 ARG TARGETARCH
 ARG BUILD_XDEBUG=0
 
-ARG PHP_VERSION=7.4
+ARG PHP_VERSION=8.6
 ARG DATABASE_MODULE=mysqli
 ARG HAS_NGINX=1
 
@@ -84,7 +86,9 @@ COPY --from=build-php-fpm-exporter /go/bin/php-fpm-exporter /usr/bin/php-fpm-exp
 COPY --from=build-nginx-prometheus-exporter /go/bin/nginx-prometheus-exporter /usr/bin/nginx-prometheus-exporter
 
 # Add Helpers
-RUN if [ "$HAS_NGINX" == "1" ]; then \
+RUN --mount=type=bind,from=ghcr.io/php/pie:1.5.5-bin@sha256:3fca03c16df842d02b654dc382db3756058d9c128064f57cace14f8728779ce9,source=/pie,target=/usr/local/bin/pie \
+    function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; } && \
+    if [ "$HAS_NGINX" == "1" ]; then \
         export BASE_DIRECTORY="nginx"; \
     else \
         export BASE_DIRECTORY="core"; \
@@ -97,15 +101,15 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     (mkdir -p /var/www/public && cd /tmp && cp -Rp base/nginx/index.php /var/www/public/index.php) && \
     # Add Repositories
     rm -f /etc/apk/repositories && \
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories) && \
-        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.24/main" >> /etc/apk/repositories) && \
+        (echo "http://dl-cdn.alpinelinux.org/alpine/v3.24/community" >> /etc/apk/repositories) && \
     # Add Build Dependencies
     if [ "$DATABASE_MODULE" == "mysqli" ]; then \
         DEV_DEPS_NAME="mariadb-connector-c-dev"; \
         DEPS_NAME="mariadb-connector-c mariadb-client"; \
     else \
-        DEV_DEPS_NAME="postgresql-dev"; \
-        DEPS_NAME="libpq postgresql14-client"; \
+        DEV_DEPS_NAME="postgresql18-dev"; \
+        DEPS_NAME="libpq postgresql18-client"; \
     fi && \
     apk update && apk upgrade && apk add --no-cache --virtual .build-deps  \
         zlib-dev \
@@ -122,9 +126,7 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         freetype-dev \
         libzip-dev \
         libevent-dev openssl-dev libmcrypt-dev \
-        libxml2-dev libtool gmp-dev $PHPIZE_DEPS \
-    # Add imagemagick-dev from v3.23 (never version for imagick extension)
-    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.23/community imagemagick-dev \
+        libxml2-dev imagemagick-dev libtool gmp-dev $PHPIZE_DEPS \
     # Add Production Dependencies
     && apk add --update --no-cache \
         jpegoptim \
@@ -136,29 +138,32 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
         ${DEPS_NAME} \
         zip libzip libevent openssl git libwebp libintl \
         oniguruma tini bash less libmcrypt sudo shadow \
-        libxml2 gmp \
-    # Add imagemagick from v3.23
-    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.23/community imagemagick \
+        libxml2 imagemagick gmp \
     # Add nginx or not
     && if [ "$HAS_NGINX" == "1" ] ; then \
-        apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.23/main nginx ; \
+        apk add --no-cache nginx ; \
     fi && \
     # Add Composer
-    (curl -fsSL https://github.com/composer/composer/releases/download/2.8.4/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
+    (curl -fsSL https://github.com/composer/composer/releases/download/2.11.2/composer.phar > /usr/bin/composer && chmod +x /usr/bin/composer) && \
     # Configure & Install Extension
     mkdir -p /usr/src/php/ext/redis \
         && mkdir -p /usr/src/php/ext/event \
         && mkdir -p /usr/src/php/ext/mcrypt \
+        && if [ $(version "$PHP_VERSION") -ge $(version "8.6") ]; then \
+            # phpredis 6.3.0 does not compile against PHP 8.6; pin first fixed commit.
+            export EXT_REDIS_VERSION="e3273a90fe0521de4c35a7410e186be68b70dff6"; \
+        else export EXT_REDIS_VERSION="6.3.0"; \
+        fi \
         && curl -fsSL https://github.com/phpredis/phpredis/archive/$EXT_REDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
         && curl -fsSL https://bitbucket.org/osmanov/pecl-event/get/$EXT_LIBEVENT_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/event --strip 1 \
-        && curl -fsSL https://pecl.php.net/get/mcrypt-$EXT_MCRYPT_VERSION.tgz | tar xvz -C /usr/src/php/ext/mcrypt --strip 1 \
+        && MCRYPT_MODULE="" \
         && docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/ --with-webp=/usr/include \
         && if [ "$DATABASE_MODULE" == "mysqli" ]; then \
             PDO_MODULE="pdo_mysql"; \
         else PDO_MODULE="pdo_pgsql" ; \
         fi \
-        && if [ "$PHP_VERSION" == "7.4" ]; then \
-            EXTRA_MODULES="json"; \
+        && if [ $(version "$PHP_VERSION") -ge $(version "8.5") ]; then \
+            EXTRA_MODULES="ftp"; \
         else EXTRA_MODULES=""; \
         fi \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
@@ -178,21 +183,31 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
             gettext \
             mbstring \
             redis \
-            mcrypt \
+            ${MCRYPT_MODULE} \
             calendar \
             soap \
             gmp \
         && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) --ini-name zz-event.ini event && \
-        (printf "\n" | pecl install imagick opentelemetry) && \
-        docker-php-ext-enable imagick && \
+        if [ $(version "$PHP_VERSION") -ge $(version "8.6") ]; then \
+            IMAGICK_PACKAGE="imagick/imagick:dev-master#55ed2e9fda264395636a2e27e51f31673f5566ab"; \
+        else IMAGICK_PACKAGE="imagick/imagick:3.8.1"; \
+        fi && \
+        pie install --no-cache --no-interaction \
+            "$IMAGICK_PACKAGE" \
+            "open-telemetry/ext-opentelemetry:1.5.0" && \
+        php --ri imagick >/dev/null && \
+        php --ri opentelemetry >/dev/null && \
         # We disable OpenTelemetry here so people can enable them as they choose to.
         rm -f /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini && \
         if [ "$BUILD_XDEBUG" = "1" ]; then \
-            if [ "$PHP_VERSION" == "7.4" ]; then \
-                pecl install xdebug-3.1.5; \
-            else pecl install xdebug-3.2.2; fi && \
-            docker-php-ext-enable xdebug; \
+            if [ $(version "$PHP_VERSION") -ge $(version "8.6") ]; then \
+                XDEBUG_PACKAGE="xdebug/xdebug:3.6.0alpha1"; \
+            else XDEBUG_PACKAGE="xdebug/xdebug:3.5.3"; \
+            fi && \
+            pie install --no-cache --no-interaction "$XDEBUG_PACKAGE" && \
+            php --ri xdebug >/dev/null; \
         fi && \
+        rm -rf /root/.pie && \
     # Add Prometheus Exporter
     chmod +x /usr/bin/php-fpm-exporter && \
     # Use www-data as a user
@@ -211,13 +226,17 @@ RUN if [ "$HAS_NGINX" == "1" ]; then \
     # Orchestration
     echo -e "[www]\npm.status_path = /orchestration/php-fpm-status\nping.path = /healthz\nping.response = alive" > /usr/local/etc/php-fpm.d/zz-status.conf && \
     # Remove Build Dependencies
-    apk del -f .build-deps imagemagick-dev && \
+    apk del -f .build-deps && \
         docker-php-source delete && \
     # Add PHP Config files
     (cd /tmp && \
         cp -Rp base/core/opcache.ini $PHP_INI_DIR/conf.d/ && \
         cp -Rp base/core/php.ini $PHP_INI_DIR/ \
     ) && \
+    if [ $(version "$PHP_VERSION") -ge $(version "8.5") ]; then \
+        # PHP 8.5+ has opcache built-in
+        sed -i '/^zend_extension=opcache\.so$/d' $PHP_INI_DIR/conf.d/opcache.ini; \
+    fi && \
     # Add supervisor basic
     (cd /tmp && cp -Rp base/${BASE_DIRECTORY}/master.ini /etc/supervisord.conf) && \
     (cd /tmp && cp -Rp base/${BASE_DIRECTORY}/supervisor.d/*.ini /etc/supervisor.d) && \
