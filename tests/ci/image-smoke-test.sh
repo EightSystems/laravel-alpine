@@ -164,4 +164,39 @@ done
 
 pass "supervisor/exporters/helpers"
 
+# ---------------------------------------------------------------------------
+# Go supervisord PATH handling with `user=`
+# ---------------------------------------------------------------------------
+# Upstream 3a1bade overwrites PATH for programs that set `user=`. Its non-root
+# value omits /usr/local/sbin, where php-fpm lives, so `docker-php-entrypoint
+# php-fpm` breaks. Keep checking this even after patching supervisord at build.
+PATH_TEST_CONFIG=/tmp/supervisord-path-test.ini
+cat > "$PATH_TEST_CONFIG" <<'EOF'
+[supervisord]
+logfile=/dev/null
+pidfile=/tmp/supervisord-path-test.pid
+nodaemon=true
+
+[program:pathtest]
+command=sh -c 'command -v php-fpm || true; command -v docker-php-entrypoint || true'
+user=www-data
+stdout_logfile=/dev/stdout
+redirect_stderr=true
+autostart=true
+autorestart=false
+startsecs=0
+EOF
+
+PATH_TEST_OUTPUT="$(timeout 5 /usr/bin/supervisord -c "$PATH_TEST_CONFIG" 2>&1 || true)"
+case "$PATH_TEST_OUTPUT" in
+    *"/usr/local/sbin/php-fpm"*) ;;
+    *)
+        echo "$PATH_TEST_OUTPUT" >&2
+        fail "supervisord user= PATH lost /usr/local/sbin (php-fpm)"
+        ;;
+esac
+rm -f "$PATH_TEST_CONFIG" /tmp/supervisord-path-test.pid
+
+pass "supervisord user= PATH"
+
 echo "ALL CHECKS PASSED"

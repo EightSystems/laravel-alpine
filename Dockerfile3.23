@@ -16,6 +16,10 @@ RUN apk add --no-cache git gcc curl musl-dev && \
     git clone https://github.com/ochinchina/supervisord.git $GOPATH/src/supervisord && \
         cd $GOPATH/src/supervisord && \
         git checkout 3a1badefce3f6f92a5b6708670eb60814f96c2a2 && \
+        # Keep container PATH for programs with `user=`. Upstream 3a1bade sets a
+        # non-root PATH without /usr/local/sbin, where php-fpm is installed.
+        grep -q '"PATH", defaultPath(u),' process/process.go && \
+        sed -i '/"PATH", defaultPath(u),/d' process/process.go && \
         go generate && \
         GOOS=$TARGETOS GOARCH=$TARGETARCH \
             go build -tags release -a -ldflags "-linkmode external -extldflags -static" -o ${GOPATH}/bin/supervisord

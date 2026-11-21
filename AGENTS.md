@@ -19,4 +19,4 @@
 - Exporters only start when `ENABLE_PROMETHEUS_EXPORTER_RUNNER=1`: PHP-FPM `:9090`, nginx stub `:8081`, nginx exporter `:9190`, nginx app `:8080`, supervisorctl `127.0.0.1:9999`.
 - Cron uses `sudo` to run `crond` as root and defaults to `/var/www/artisan schedule:run` every minute; keep `setuid`/`setgid` caps or delete `/etc/supervisor.d/01_crond.ini`. Read-only containers need tmpfs at `/tmp`, `/run/nginx`, `/var/lib/nginx/tmp`.
 - Packages do not all come from the base Alpine repo: Dockerfile3.20 pulls nginx from `v3.23/main` (its own repo is unpatched); Dockerfile3.23 uses native nginx from `v3.23`; Dockerfile3.24 uses native nginx from `v3.24`. PHP 8.5+ strips `zend_extension=opcache.so` because opcache is built in.
-- All Dockerfiles use Go 1.27 + supervisord commit `3a1bade`.
+- All Dockerfiles use Go 1.27 + supervisord commit `3a1bade`, patched at build to stop overriding PATH when a program sets `user=`. Without the patch, non-root PATH omits `/usr/local/sbin` and `php-fpm` is not found.
